@@ -7,7 +7,8 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ActorSystem {
 
-    Dispatcher dispatcher = new Dispatcher();
+    private Dispatcher dispatcher = new Dispatcher();
+    private EventBus eventBus = new EventBus();
 
     public ActorRef actorOf(Class<? extends Actor> actorClass, Probe probe) {
         ActorRef ref = actorOf(actorClass);
@@ -40,5 +41,9 @@ public class ActorSystem {
 
     public Dispatcher getDispatcher() {
         return dispatcher;
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
     }
 }
