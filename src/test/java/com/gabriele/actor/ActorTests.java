@@ -2,7 +2,7 @@ package com.gabriele.actor;
 
 import android.test.suitebuilder.annotation.LargeTest;
 
-import com.gabriele.actor.internals.Actor;
+import com.gabriele.actor.internals.AbstractActor;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
 import com.gabriele.actor.internals.EventBus;
@@ -38,7 +38,7 @@ public class ActorTests {
         Probe probe = new Probe();
         ActorRef ref = system.actorOf(Actor1.class, probe);
         ref.tell("test", null);
-        probe.expectMessage("test", 1000);
+        probe.expectMessage("test", 10);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class ActorTests {
 
         Event event = new Event();
         eventBus.publish(event, null);
-        probe.expectMessage(event, 1000);
+        probe.expectMessage(event, 10);
     }
 
     @Test
@@ -61,11 +61,11 @@ public class ActorTests {
         ActorRef ref2 = system.actorOf(Actor2.class, probe2);
 
         ref2.tell("hello", ref1);
-        probe2.expectMessage("hello", 1000);
-        probe1.expectMessage("bonjour", 1000);
+        probe2.expectMessage("hello", 10);
+        probe1.expectMessage("bonjour", 10);
     }
 
-    public static class Actor1 extends Actor {
+    public static class Actor1 extends AbstractActor {
 
         @Override
         public void onReceive(Object message) {
@@ -73,7 +73,7 @@ public class ActorTests {
         }
     }
 
-    public static class Actor2 extends Actor {
+    public static class Actor2 extends AbstractActor {
 
         @Override
         public void onReceive(Object message) {

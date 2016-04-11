@@ -16,18 +16,20 @@ public class EventBus {
     }
 
     public void subscribe(Class clazz, ActorRef ref) {
-        if (clazzBindings.containsKey(clazz)) {
-            clazzBindings.get(clazz).add(ref);
+        Set<ActorRef> refs = clazzBindings.get(clazz);
+        if (refs != null) {
+            refs.add(ref);
         } else {
-            Set<ActorRef> refs = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
+            refs = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
             refs.add(ref);
             clazzBindings.put(clazz, refs);
         }
 
-        if (actorBindings.containsKey(ref)) {
-            actorBindings.get(ref).add(clazz);
+        Set<Class<?>> clazzs = actorBindings.get(ref);
+        if (clazzs != null) {
+            clazzs.add(clazz);
         } else {
-            Set<Class<?>> clazzs = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
+            clazzs = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
             clazzs.add(clazz);
             actorBindings.put(ref, clazzs);
         }
@@ -37,8 +39,8 @@ public class EventBus {
     public void publish(Object obj, ActorRef sender) {
         Class clazz = obj.getClass();
         while (clazz != null) {
-            if (clazzBindings.containsKey(clazz)) {
-                Set<ActorRef> refs = clazzBindings.get(clazz);
+            Set<ActorRef> refs = clazzBindings.get(clazz);
+            if (refs != null) {
                 for (ActorRef ref: refs) {
                     ref.tell(obj, sender);
                 }

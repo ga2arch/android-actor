@@ -2,21 +2,18 @@ package com.gabriele.actor.internals;
 
 import java.lang.ref.WeakReference;
 
-public class ActorRef extends WeakReference<Actor> {
+public class ActorRef extends WeakReference<AbstractActor> {
 
-    private ActorSystem system;
-
-    public ActorRef(ActorSystem system, Actor actor) {
+    public ActorRef(AbstractActor actor) {
         super(actor);
-        this.system = system;
     }
 
     public void tell(final Object message, final ActorRef sender) {
-        system.getDispatcher().publish(this, message, sender);
+        get().getSystem().publish(this, message, sender);
     }
 
     @Override
-    public Actor get() {
+    public AbstractActor get() {
         if (super.get() == null)
             throw new RuntimeException();
 
