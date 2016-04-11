@@ -1,20 +1,17 @@
 package com.gabriele.actor.internals;
 
-import android.app.Activity;
-
 import com.gabriele.actor.testing.Probe;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ActorSystem {
 
     private final EventBus eventBus = new EventBus();
-    private final HashSet<AbstractActor> actors = new HashSet<>();
+    private final Set<AbstractActor> actors = Collections.newSetFromMap(new ConcurrentHashMap<AbstractActor, Boolean>());
     private final ConcurrentHashMap<ActorRef, Probe> probes = new ConcurrentHashMap<>();
 
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe) {
@@ -34,21 +31,15 @@ public class ActorSystem {
 
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Props props) {
         try {
-            ArrayList<Class<?>> clazzs = new ArrayList<>();
-            for (Object extra: props.getArgs()) {
-                if (extra instanceof Activity)
-                    clazzs.add(Activity.class);
-                else
-                    clazzs.add(extra.getClass());
-            }
-
-            Constructor<?> constructor = actorClass.getConstructor(clazzs.toArray(new Class<?>[clazzs.size()]));
+            Constructor<?> constructor = actorClass.getConstructor(props.getClazzs());
             AbstractActor actor = (AbstractActor) constructor.newInstance(props.getArgs());
             actor.setDispatcher(props.getDispatcher());
             actors.add(actor);
+
             ActorRef ref = new ActorRef(actor);
             actor.setSelf(ref);
             actor.setSystem(this);
+
             return ref;
 
         } catch (NoSuchMethodException e) {
@@ -68,8 +59,7 @@ public class ActorSystem {
         AbstractActor actor = actorRef.get();
         if (actor == null) return;
 
-        ConcurrentLinkedQueue<Message> mailbox = actor.getMailbox();
-        mailbox.add(new Message(message, sender));
+        actor.getMailbox().add(new Message(message, sender));
         Probe probe = probes.get(actorRef);
         if (probe != null) {
             probe.setMessage(message);
