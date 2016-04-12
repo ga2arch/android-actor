@@ -1,20 +1,11 @@
 package com.gabriele.actor.internals;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class AbstractActor implements ActorInterface {
 
-    private ActorSystem system;
-    private ActorRef sender;
-    private ActorRef self;
-    private AbstractDispatcher dispatcher;
-    private final ConcurrentLinkedQueue<Message> mailbox = new ConcurrentLinkedQueue<>();
-    private final ArrayList<Message> stash = new ArrayList<>();
-    private final Deque<OnReceiveFunction> stack = new ArrayDeque<>();
+    private ActorContext context;
+    private final ConcurrentLinkedQueue<ActorMessage> mailbox = new ConcurrentLinkedQueue<>();
 
     public void preStart() {
 
@@ -24,64 +15,44 @@ public abstract class AbstractActor implements ActorInterface {
 
     }
 
-    protected void become(OnReceiveFunction function) {
-        stack.push(function);
-    }
-
-    protected void unbecome() {
-        stack.pop();
-    }
-
-    protected void stash(Object object, ActorRef sender) {
-        stash.add(new Message(object, sender));
-    }
-
-    protected void unstashAll() {
-        Iterator<Message> it = stash.iterator();
-        while (it.hasNext()) {
-            Message msg = it.next();
-            mailbox.add(msg);
-            it.remove();
-        }
-    }
-
-    void setSender(ActorRef sender) {
-        this.sender = sender;
-    }
-
-    public ActorRef getSelf() {
-        return self;
-    }
-
-    public void setSelf(ActorRef self) {
-        this.self = self;
-    }
-
-    public ActorRef getSender() {
-        return sender;
-    }
-
-    public AbstractDispatcher getDispatcher() {
-        return dispatcher;
-    }
-
-    public ConcurrentLinkedQueue<Message> getMailbox() {
+    public ConcurrentLinkedQueue<ActorMessage> getMailbox() {
         return mailbox;
     }
 
+    public ActorContext getActorContext() {
+        return context;
+    }
+
+    public void setContext(ActorContext context) {
+        this.context = context;
+    }
+
+    public ActorRef getSender() {
+        return getActorContext().getSender();
+    }
+
+    public ActorRef getSelf() {
+        return getActorContext().getSelf();
+    }
+
     public ActorSystem getSystem() {
-        return system;
+        return getActorContext().getSystem();
     }
 
-    public void setSystem(ActorSystem system) {
-        this.system = system;
+    public void stash() {
+        getActorContext().stash();
     }
 
-    public void setDispatcher(AbstractDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
+    public void unstashAll() {
+        getActorContext().unstashAll();
     }
 
-    public Deque<OnReceiveFunction> getStack() {
-        return stack;
+    public void become(OnReceiveFunction fun) {
+        getActorContext().become(fun);
+    }
+
+    public void unbecome() {
+        getActorContext().unbecome();
     }
 }
+

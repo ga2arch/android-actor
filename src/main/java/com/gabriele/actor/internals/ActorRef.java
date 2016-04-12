@@ -12,7 +12,7 @@ public class ActorRef extends WeakReference<AbstractActor> {
     }
 
     public void tell(final Object message, final ActorRef sender) {
-        get().getSystem().publish(this, message, sender);
+        get().getActorContext().getSystem().publish(this, message, sender);
     }
 
     @Override

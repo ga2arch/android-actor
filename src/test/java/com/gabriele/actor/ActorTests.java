@@ -6,7 +6,7 @@ import com.gabriele.actor.internals.AbstractActor;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
 import com.gabriele.actor.internals.EventBus;
-import com.gabriele.actor.internals.Message;
+import com.gabriele.actor.internals.ActorMessage;
 import com.gabriele.actor.internals.OnReceiveFunction;
 import com.gabriele.actor.testing.Probe;
 
@@ -70,7 +70,7 @@ public class ActorTests {
     @Test
     public void testDeadActor() {
         ActorRef ref1 = system.actorOf(Actor1.class);
-        ref1.tell(new Message.PoisonPill(), null);
+        ref1.tell(new ActorMessage.PoisonPill(), null);
         ref1.tell("ciao", null);
     }
 
@@ -86,7 +86,7 @@ public class ActorTests {
         @Override
         public void onReceive(Object message) {
             System.out.println("received: " + message);
-            become(ready);
+            getActorContext().become(ready);
         }
 
         OnReceiveFunction ready = new OnReceiveFunction() {

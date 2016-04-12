@@ -1,10 +1,10 @@
 package com.gabriele.actor.internals;
 
-public class Message {
+public class ActorMessage {
     Object object;
     ActorRef sender;
 
-    public Message(Object object, ActorRef sender) {
+    public ActorMessage(Object object, ActorRef sender) {
         this.object = object;
         this.sender = sender;
     }

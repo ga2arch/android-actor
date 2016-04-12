@@ -30,18 +30,20 @@ public abstract class AbstractDispatcher {
                     @Override
                     public void run() {
                         AbstractActor actor = actorRef.get();
-                        ConcurrentLinkedQueue<Message> mailbox = actorRef.get().getMailbox();
-                        Iterator<Message> it = mailbox.iterator();
+                        ConcurrentLinkedQueue<ActorMessage> mailbox = actorRef.get().getMailbox();
+                        Iterator<ActorMessage> it = mailbox.iterator();
                         boolean terminated = false;
                         while (it.hasNext() && !terminated) {
-                            Message message = it.next();
-                            if (message.getObject() instanceof Message.PoisonPill) {
+                            ActorMessage message = it.next();
+                            if (message.getObject() instanceof ActorMessage.PoisonPill) {
                                 getSystem().terminateActor(actorRef);
                                 terminated = true;
                             }
 
-                            actor.setSender(message.getSender());
-                            Deque<OnReceiveFunction> stack = actor.getStack();
+                            ActorContext context = actor.getActorContext();
+                            context.setSender(message.getSender());
+                            context.setCurrentMessage(message);
+                            Deque<OnReceiveFunction> stack = context.getStack();
                             if (stack.isEmpty())
                                 actor.onReceive(message.getObject());
                             else
