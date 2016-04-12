@@ -33,7 +33,9 @@ public class ActorSystem {
         try {
             Constructor<?> constructor = actorClass.getConstructor(props.getClazzs());
             AbstractActor actor = (AbstractActor) constructor.newInstance(props.getArgs());
-            actor.setDispatcher(props.getDispatcher());
+            AbstractDispatcher dispatcher = props.getDispatcher();
+            dispatcher.setSystem(this);
+            actor.setDispatcher(dispatcher);
             actors.add(actor);
 
             ActorRef ref = new ActorRef(actor);
@@ -57,8 +59,6 @@ public class ActorSystem {
 
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
         AbstractActor actor = actorRef.get();
-        if (actor == null) return;
-
         actor.getMailbox().add(new Message(message, sender));
         Probe probe = probes.get(actorRef);
         if (probe != null) {
@@ -72,5 +72,9 @@ public class ActorSystem {
         return eventBus;
     }
 
+    public void terminateActor(ActorRef ref) {
+        actors.remove(ref.get());
+        ref.clear();
+    }
 
 }

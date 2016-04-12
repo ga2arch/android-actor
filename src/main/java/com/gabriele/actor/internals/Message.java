@@ -16,4 +16,8 @@ public class Message {
     public ActorRef getSender() {
         return sender;
     }
+
+    public static class PoisonPill {
+
+    }
 }

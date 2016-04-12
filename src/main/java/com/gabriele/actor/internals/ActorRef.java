@@ -4,8 +4,11 @@ import java.lang.ref.WeakReference;
 
 public class ActorRef extends WeakReference<AbstractActor> {
 
+    private int hashCode;
+
     public ActorRef(AbstractActor actor) {
         super(actor);
+        hashCode = actor.hashCode();
     }
 
     public void tell(final Object message, final ActorRef sender) {
@@ -15,13 +18,13 @@ public class ActorRef extends WeakReference<AbstractActor> {
     @Override
     public AbstractActor get() {
         if (super.get() == null)
-            throw new RuntimeException();
+            throw new ActorIsTerminatedException();
 
         return super.get();
     }
 
     @Override
     public int hashCode() {
-        return get().hashCode();
+        return hashCode;
     }
 }

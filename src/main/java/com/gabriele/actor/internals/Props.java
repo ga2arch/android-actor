@@ -13,6 +13,9 @@ public class Props {
     public Props() { this.args = new Object[]{}; }
 
     public Props(Activity activity) {
+        if (!(activity instanceof ActorInterface))
+            throw new RuntimeException("Activity doesn't implement ActorInterface");
+
         this.args = new Object[]{activity};
         this.clazzs.add(Activity.class);
     }

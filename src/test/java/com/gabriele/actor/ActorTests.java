@@ -6,6 +6,8 @@ import com.gabriele.actor.internals.AbstractActor;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
 import com.gabriele.actor.internals.EventBus;
+import com.gabriele.actor.internals.Message;
+import com.gabriele.actor.internals.OnReceiveFunction;
 import com.gabriele.actor.testing.Probe;
 
 import org.junit.AfterClass;
@@ -65,12 +67,34 @@ public class ActorTests {
         probe1.expectMessage("bonjour", 10);
     }
 
+    @Test
+    public void testDeadActor() {
+        ActorRef ref1 = system.actorOf(Actor1.class);
+        ref1.tell(new Message.PoisonPill(), null);
+        ref1.tell("ciao", null);
+    }
+
+    @Test
+    public void testBecome() {
+        ActorRef ref1 = system.actorOf(Actor1.class);
+        ref1.tell("get ready", null);
+        ref1.tell("ciao", null);
+    }
+
     public static class Actor1 extends AbstractActor {
 
         @Override
         public void onReceive(Object message) {
-
+            System.out.println("received: " + message);
+            become(ready);
         }
+
+        OnReceiveFunction ready = new OnReceiveFunction() {
+            @Override
+            public void onReceive(Object message) {
+                System.out.println("ready");
+            }
+        };
     }
 
     public static class Actor2 extends AbstractActor {

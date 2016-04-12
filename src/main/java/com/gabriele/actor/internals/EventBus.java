@@ -42,7 +42,11 @@ public class EventBus {
             Set<ActorRef> refs = clazzBindings.get(clazz);
             if (refs != null) {
                 for (ActorRef ref: refs) {
-                    ref.tell(obj, sender);
+                    try {
+                        ref.tell(obj, sender);
+                    } catch (ActorIsTerminatedException e) {
+                        unsubscribe(ref);
+                    }
                 }
             }
             clazz = clazz.getSuperclass();

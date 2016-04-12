@@ -4,12 +4,10 @@ import android.app.Activity;
 
 import java.lang.ref.WeakReference;
 
-public class ActivityActor extends AbstractDelegateActor {
+public class ActivityActor extends DelegateActor {
 
     public ActivityActor(Activity delegate) {
-        if (delegate instanceof ActorInterface) {
-            this.delegate = new WeakReference<>((ActorInterface) delegate);
-        }
+        super(new WeakReference<>((ActorInterface) delegate));
     }
 
     @Override
