@@ -6,7 +6,6 @@ import com.gabriele.actor.internals.AbstractActor;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
 import com.gabriele.actor.internals.EventBus;
-import com.gabriele.actor.internals.ActorMessage;
 import com.gabriele.actor.internals.OnReceiveFunction;
 import com.gabriele.actor.testing.Probe;
 
@@ -37,7 +36,7 @@ public class ActorTests {
 
     @Test
     public void testActorMessage() {
-        Probe probe = new Probe();
+        Probe probe = new Probe(false);
         ActorRef ref = system.actorOf(Actor1.class, probe);
         ref.tell("test", null);
         probe.expectMessage("test", 10);
@@ -68,31 +67,45 @@ public class ActorTests {
     }
 
     @Test
-    public void testDeadActor() {
+    public void testBecome() {
+        Probe probe = new Probe();
         ActorRef ref1 = system.actorOf(Actor1.class);
-        ref1.tell(new ActorMessage.PoisonPill(), null);
-        ref1.tell("ciao", null);
+        ActorRef ref2 = system.actorOf(Actor2.class, probe);
+
+        ref1.tell(new BecomeEcho(), null);
+        ref1.tell("ciao", ref2);
+
+        probe.expectMessage("ciao", 1000);
     }
 
     @Test
-    public void testBecome() {
+    public void testStash() {
+        Probe probe = new Probe();
         ActorRef ref1 = system.actorOf(Actor1.class);
-        ref1.tell("get ready", null);
-        ref1.tell("ciao", null);
+        ActorRef ref2 = system.actorOf(Actor2.class, probe);
+
+        ref1.tell("ciao", ref2);
+        ref1.tell(new BecomeEcho(), null);
+
+        probe.expectMessage("ciao", 1000);
     }
 
     public static class Actor1 extends AbstractActor {
 
         @Override
         public void onReceive(Object message) {
-            System.out.println("received: " + message);
-            getActorContext().become(ready);
+            if (message instanceof BecomeEcho) {
+                getActorContext().become(echo);
+                unstashAll();
+            }
+            else
+                stash();
         }
 
-        OnReceiveFunction ready = new OnReceiveFunction() {
+        OnReceiveFunction echo = new OnReceiveFunction() {
             @Override
             public void onReceive(Object message) {
-                System.out.println("ready");
+                getSender().tell(message, getSelf());
             }
         };
     }
@@ -109,4 +122,6 @@ public class ActorTests {
     public static class Event {
 
     }
+
+    public static class BecomeEcho {}
 }

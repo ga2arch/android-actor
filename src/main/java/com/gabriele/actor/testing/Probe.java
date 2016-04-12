@@ -4,12 +4,24 @@ import com.gabriele.actor.internals.ActorRef;
 
 public class Probe {
 
+    private boolean propagate = true;
     private ActorRef sender;
     private ActorRef receiver;
     private Object   message;
 
+    public Probe() {
+    }
+
+    public Probe(boolean propagate) {
+        this.propagate = propagate;
+    }
+
     public ActorRef getSender() {
         return sender;
+    }
+
+    public boolean toPropagate() {
+        return propagate;
     }
 
     public void setSender(ActorRef sender) {
@@ -30,25 +42,26 @@ public class Probe {
 
     public void setMessage(Object message) {
         this.message = message;
-        synchronized (Probe.class) {
-            Probe.class.notify();
+        synchronized (this) {
+            notifyAll();
         }
     }
 
     public void expectMessage(Object msg, long wait) {
-        synchronized (Probe.class) {
-            try {
-                Probe.class.wait(wait);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if (message == null)
+            synchronized (this) {
+                try {
+                    wait(wait);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
         if (message == null) {
             throw new RuntimeException("message didn't arrive");
         }
-        else if (message != msg) {
-            throw new RuntimeException("received wrong message: " + message);
+        else if (!message.equals(msg)) {
+            throw new RuntimeException("received: " + message + " instead of" + msg);
         }
     }
 }
