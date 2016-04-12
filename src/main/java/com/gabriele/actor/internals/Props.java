@@ -1,6 +1,8 @@
 package com.gabriele.actor.internals;
 
 import android.app.Activity;
+import android.content.Context;
+import android.support.v7.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
@@ -18,6 +20,19 @@ public class Props {
 
         this.args = new Object[]{activity};
         this.clazzs.add(Activity.class);
+    }
+
+    public Props(AppCompatActivity activity) {
+        if (!(activity instanceof ActorInterface))
+            throw new RuntimeException("AppCompatActivity doesn't implement ActorInterface");
+
+        this.args = new Object[]{activity};
+        this.clazzs.add(AppCompatActivity.class);
+    }
+
+    public Props(Context context) {
+        this.args = new Object[]{context};
+        this.clazzs.add(Context.class);
     }
 
     public Props(Object... args) {

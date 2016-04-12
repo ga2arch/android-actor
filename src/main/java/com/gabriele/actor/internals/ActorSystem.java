@@ -41,7 +41,7 @@ public class ActorSystem {
             ActorRef ref = new ActorRef(actor);
             actor.setSelf(ref);
             actor.setSystem(this);
-
+            actor.preStart();
             return ref;
 
         } catch (NoSuchMethodException e) {
@@ -52,6 +52,7 @@ public class ActorSystem {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             e.printStackTrace();
+            e.getCause().printStackTrace();
         }
 
         return null;

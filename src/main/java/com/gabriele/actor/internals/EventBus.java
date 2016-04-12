@@ -1,15 +1,19 @@
 package com.gabriele.actor.internals;
 
+import android.util.Log;
+
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EventBus {
 
-    ActorRef listener;
+    public final static String LOG_TAG = "EventBus";
 
-    ConcurrentHashMap<Class<?>, Set<ActorRef>> clazzBindings = new ConcurrentHashMap<>();
-    ConcurrentHashMap<ActorRef, Set<Class<?>>> actorBindings = new ConcurrentHashMap<>();
+    private ActorRef listener;
+    private final ConcurrentHashMap<Class<?>, Set<ActorRef>> clazzBindings = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ActorRef, Set<Class<?>>> actorBindings = new ConcurrentHashMap<>();
 
     public void pipeTo(ActorRef ref) {
         listener = ref;
@@ -37,6 +41,8 @@ public class EventBus {
     }
 
     public void publish(Object obj, ActorRef sender) {
+        Log.d(LOG_TAG, "Publishing: " + obj);
+
         Class clazz = obj.getClass();
         while (clazz != null) {
             Set<ActorRef> refs = clazzBindings.get(clazz);
@@ -78,5 +84,13 @@ public class EventBus {
 
             }
         }
+    }
+
+    public HashSet<String> getSubscriptions() {
+        HashSet<String> subs = new HashSet<>();
+        for (Class<?> clazz: clazzBindings.keySet())
+            subs.add(clazz.getSimpleName());
+
+        return subs;
     }
 }
