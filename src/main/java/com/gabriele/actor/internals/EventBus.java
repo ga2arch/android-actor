@@ -30,7 +30,7 @@ public class EventBus {
         listener = ref;
     }
 
-    public void subscribe(Class clazz, ActorRef ref) {
+    public synchronized void  subscribe(Class clazz, ActorRef ref) {
         Set<ActorRef> refs = classToActors.get(clazz);
         if (refs != null) {
             refs.add(ref);
@@ -53,7 +53,7 @@ public class EventBus {
             publish(new SubscribeMessage(clazz), ref);
     }
 
-    public void subscribe(String uri, final ActorRef ref) {
+    public synchronized void subscribe(String uri, final ActorRef ref) {
         IntentFilter filter = new IntentFilter(uri);
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
@@ -74,7 +74,7 @@ public class EventBus {
         }
     }
 
-    public void publish(Object obj, ActorRef sender) {
+    public synchronized void publish(Object obj, ActorRef sender) {
         Log.d(LOG_TAG, "Publishing: " + obj);
 
         Class clazz = obj.getClass();
@@ -93,7 +93,7 @@ public class EventBus {
         }
     }
 
-    public void unsubscribe(ActorRef ref) {
+    public synchronized void unsubscribe(ActorRef ref) {
         Set<Class<?>> clazzs = actorToClass.get(ref);
         if (clazzs != null) {
             for (Class clazz: clazzs) {
@@ -122,7 +122,7 @@ public class EventBus {
         }
     }
 
-    public void unsubscribe(Class clazz, ActorRef ref) {
+    public synchronized void unsubscribe(Class clazz, ActorRef ref) {
         Set<ActorRef> clazzs = classToActors.get(clazz);
         if (clazzs != null) {
             clazzs.remove(ref);
@@ -134,7 +134,7 @@ public class EventBus {
         }
     }
 
-    public void unsubscribe(String uri, ActorRef ref) {
+    public synchronized void unsubscribe(String uri, ActorRef ref) {
         BroadcastReceiver receiver = uriToReceiver.get(uri);
         if (receiver != null) {
             getContext().unregisterReceiver(receiver);
@@ -144,7 +144,7 @@ public class EventBus {
         }
     }
 
-    public HashSet<String> getSubscriptions() {
+    public synchronized HashSet<String> getSubscriptions() {
         HashSet<String> subs = new HashSet<>();
         for (Class<?> clazz: classToActors.keySet())
             subs.add(clazz.getSimpleName());
@@ -152,7 +152,7 @@ public class EventBus {
         return subs;
     }
 
-    public boolean isSubscribed(Class<?> clazz, ActorRef ref) {
+    public synchronized boolean isSubscribed(Class<?> clazz, ActorRef ref) {
         Set<ActorRef> actors = classToActors.get(clazz);
         if (actors != null) {
             return actors.contains(ref);
