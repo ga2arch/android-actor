@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public abstract class AbstractActor implements ActorInterface {
 
     private ActorContext context;
+    private boolean started = false;
     private final ConcurrentLinkedQueue<ActorMessage> mailbox = new ConcurrentLinkedQueue<>();
 
     public void preStart() {
@@ -59,6 +60,14 @@ public abstract class AbstractActor implements ActorInterface {
 
     public Context getContext() {
         return getActorContext().getContext();
+    }
+
+    public boolean isStarted() {
+        return started;
+    }
+
+    public void setStarted() {
+        this.started = true;
     }
 }
 

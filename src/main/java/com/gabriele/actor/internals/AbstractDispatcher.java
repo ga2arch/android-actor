@@ -30,6 +30,11 @@ public abstract class AbstractDispatcher {
                     @Override
                     public void run() {
                         AbstractActor actor = actorRef.get();
+                        if (!actor.isStarted()) {
+                            actor.preStart();
+                            actor.setStarted();
+                        }
+
                         ConcurrentLinkedQueue<ActorMessage> mailbox = actorRef.get().getMailbox();
                         Iterator<ActorMessage> it = mailbox.iterator();
                         boolean terminated = false;

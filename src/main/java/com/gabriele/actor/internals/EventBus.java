@@ -50,7 +50,7 @@ public class EventBus {
         }
 
         if (clazz != SubscribeMessage.class)
-            publish(new SubscribeMessage(clazz), ActorRef.noSender());
+            publish(new SubscribeMessage(clazz), ref);
     }
 
     public void subscribe(String uri, final ActorRef ref) {
@@ -104,7 +104,7 @@ public class EventBus {
                     if (refs.isEmpty()) {
                         classToActors.remove(clazz);
                         if (clazz != UnsubscribeMessage.class)
-                            publish(new UnsubscribeMessage(clazz), ActorRef.noSender());
+                            publish(new UnsubscribeMessage(clazz), ref);
                     }
                 }
             }
@@ -129,7 +129,7 @@ public class EventBus {
             if (clazzs.isEmpty()) {
                 classToActors.remove(clazz);
                 if (clazz != UnsubscribeMessage.class)
-                    publish(new UnsubscribeMessage(clazz), ActorRef.noSender());
+                    publish(new UnsubscribeMessage(clazz), ref);
             }
         }
     }
@@ -152,6 +152,15 @@ public class EventBus {
         return subs;
     }
 
+    public boolean isSubscribed(Class<?> clazz, ActorRef ref) {
+        Set<ActorRef> actors = classToActors.get(clazz);
+        if (actors != null) {
+            return actors.contains(ref);
+        }
+
+        return false;
+    }
+
     public Context getContext() {
         return context;
     }
@@ -163,7 +172,7 @@ public class EventBus {
             this.event = event;
         }
 
-        public Class<?> getEvent() {
+        public Class<?> getClazz() {
             return event;
         }
     }
@@ -175,7 +184,7 @@ public class EventBus {
             this.event = event;
         }
 
-        public Class<?> getEvent() {
+        public Class<?> getClazz() {
             return event;
         }
     }
