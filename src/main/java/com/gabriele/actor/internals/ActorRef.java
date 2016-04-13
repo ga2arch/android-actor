@@ -15,6 +15,10 @@ public class ActorRef extends WeakReference<AbstractActor> {
         get().getActorContext().getSystem().publish(this, message, sender);
     }
 
+    public static ActorRef noSender() {
+        return null;
+    }
+
     @Override
     public AbstractActor get() {
         if (super.get() == null)

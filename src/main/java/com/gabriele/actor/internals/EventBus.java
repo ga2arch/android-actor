@@ -17,8 +17,10 @@ public class EventBus {
 
     private final Context context;
     private ActorRef listener;
-    private final ConcurrentHashMap<Class<?>, Set<ActorRef>> clazzBindings = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<ActorRef, Set<Class<?>>> actorBindings = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<?>, Set<ActorRef>> classToActors = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ActorRef, Set<Class<?>>> actorToClass = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BroadcastReceiver> uriToReceiver = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ActorRef, Set<String>> actorToReceivers = new ConcurrentHashMap<>();
 
     public EventBus(Context context) {
         this.context = context;
@@ -29,35 +31,47 @@ public class EventBus {
     }
 
     public void subscribe(Class clazz, ActorRef ref) {
-        Set<ActorRef> refs = clazzBindings.get(clazz);
+        Set<ActorRef> refs = classToActors.get(clazz);
         if (refs != null) {
             refs.add(ref);
         } else {
             refs = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
             refs.add(ref);
-            clazzBindings.put(clazz, refs);
+            classToActors.put(clazz, refs);
         }
 
-        Set<Class<?>> clazzs = actorBindings.get(ref);
+        Set<Class<?>> clazzs = actorToClass.get(ref);
         if (clazzs != null) {
             clazzs.add(clazz);
         } else {
             clazzs = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
             clazzs.add(clazz);
-            actorBindings.put(ref, clazzs);
+            actorToClass.put(ref, clazzs);
         }
 
+        if (clazz != SubscribeMessage.class)
+            publish(new SubscribeMessage(clazz), ActorRef.noSender());
     }
 
     public void subscribe(String uri, final ActorRef ref) {
         IntentFilter filter = new IntentFilter(uri);
-        BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 ref.tell(intent, null);
             }
         };
-        getContext().registerReceiver(mReceiver, filter);
+        getContext().registerReceiver(receiver, filter);
+        uriToReceiver.put(uri, receiver);
+
+        Set<String> receivers = actorToReceivers.get(ref);
+        if (receivers != null) {
+            receivers.add(uri);
+        } else {
+            receivers = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+            receivers.add(uri);
+            actorToReceivers.put(ref, receivers);
+        }
     }
 
     public void publish(Object obj, ActorRef sender) {
@@ -65,7 +79,7 @@ public class EventBus {
 
         Class clazz = obj.getClass();
         while (clazz != null) {
-            Set<ActorRef> refs = clazzBindings.get(clazz);
+            Set<ActorRef> refs = classToActors.get(clazz);
             if (refs != null) {
                 for (ActorRef ref: refs) {
                     try {
@@ -80,35 +94,59 @@ public class EventBus {
     }
 
     public void unsubscribe(ActorRef ref) {
-        Set<Class<?>> clazzs = actorBindings.get(ref);
+        Set<Class<?>> clazzs = actorToClass.get(ref);
         if (clazzs != null) {
             for (Class clazz: clazzs) {
-                Set<ActorRef> refs = clazzBindings.get(clazz);
+                Set<ActorRef> refs = classToActors.get(clazz);
                 if (refs != null) {
                     refs.remove(ref);
 
                     if (refs.isEmpty()) {
-                        clazzBindings.remove(clazz);
+                        classToActors.remove(clazz);
+                        if (clazz != UnsubscribeMessage.class)
+                            publish(new UnsubscribeMessage(clazz), ActorRef.noSender());
                     }
                 }
             }
         }
+
+        Set<String> receivers = actorToReceivers.get(ref);
+        if (receivers != null) {
+            for (String uri: receivers) {
+                BroadcastReceiver receiver = uriToReceiver.get(uri);
+                if (receiver != null) {
+                    getContext().unregisterReceiver(receiver);
+                }
+            }
+            actorToReceivers.remove(ref);
+        }
     }
 
     public void unsubscribe(Class clazz, ActorRef ref) {
-        Set<ActorRef> clazzs = clazzBindings.get(clazz);
+        Set<ActorRef> clazzs = classToActors.get(clazz);
         if (clazzs != null) {
             clazzs.remove(ref);
             if (clazzs.isEmpty()) {
-                clazzBindings.remove(clazz);
-
+                classToActors.remove(clazz);
+                if (clazz != UnsubscribeMessage.class)
+                    publish(new UnsubscribeMessage(clazz), ActorRef.noSender());
             }
+        }
+    }
+
+    public void unsubscribe(String uri, ActorRef ref) {
+        BroadcastReceiver receiver = uriToReceiver.get(uri);
+        if (receiver != null) {
+            getContext().unregisterReceiver(receiver);
+            Set<String> receivers = actorToReceivers.get(ref);
+            if (receivers != null)
+                receivers.remove(uri);
         }
     }
 
     public HashSet<String> getSubscriptions() {
         HashSet<String> subs = new HashSet<>();
-        for (Class<?> clazz: clazzBindings.keySet())
+        for (Class<?> clazz: classToActors.keySet())
             subs.add(clazz.getSimpleName());
 
         return subs;
@@ -116,5 +154,29 @@ public class EventBus {
 
     public Context getContext() {
         return context;
+    }
+
+    public static class SubscribeMessage {
+        private Class<?> event;
+
+        public SubscribeMessage(Class<?> event) {
+            this.event = event;
+        }
+
+        public Class<?> getEvent() {
+            return event;
+        }
+    }
+
+    public static class UnsubscribeMessage {
+        private Class<?> event;
+
+        public UnsubscribeMessage(Class<?> event) {
+            this.event = event;
+        }
+
+        public Class<?> getEvent() {
+            return event;
+        }
     }
 }

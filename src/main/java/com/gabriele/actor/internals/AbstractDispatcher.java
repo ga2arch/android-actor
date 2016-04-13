@@ -36,6 +36,7 @@ public abstract class AbstractDispatcher {
                         while (it.hasNext() && !terminated) {
                             ActorMessage message = it.next();
                             if (message.getObject() instanceof ActorMessage.PoisonPill) {
+                                actor.afterStop();
                                 getSystem().terminateActor(actorRef);
                                 terminated = true;
                             }
@@ -51,9 +52,9 @@ public abstract class AbstractDispatcher {
 
                             it.remove();
                         }
-                        if (terminated) throw new ActorIsTerminatedException();
+                        //if (terminated) throw new ActorIsTerminatedException();
                         running.remove(actorRef);
-                        if (mailbox.size() > 0) dispatch(actorRef);
+                        if (!terminated && mailbox.size() > 0) dispatch(actorRef);
                     }
                 });
             }

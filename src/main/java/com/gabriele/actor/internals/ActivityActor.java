@@ -16,6 +16,12 @@ public class ActivityActor extends DelegateActor {
     }
 
     @Override
+    public void preStart() {
+        getActorContext().setDispatcher(new MainThreadDispatcher());
+        super.preStart();
+    }
+
+    @Override
     public void onReceive(final Object message) {
         delegate.get().onReceive(message);
     }
