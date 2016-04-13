@@ -1,5 +1,7 @@
 package com.gabriele.actor.internals;
 
+import android.content.Context;
+
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class AbstractActor implements ActorInterface {
@@ -23,7 +25,7 @@ public abstract class AbstractActor implements ActorInterface {
         return context;
     }
 
-    public void setContext(ActorContext context) {
+    public void setActorContext(ActorContext context) {
         this.context = context;
     }
 
@@ -53,6 +55,10 @@ public abstract class AbstractActor implements ActorInterface {
 
     public void unbecome() {
         getActorContext().unbecome();
+    }
+
+    public Context getContext() {
+        return getActorContext().getContext();
     }
 }
 

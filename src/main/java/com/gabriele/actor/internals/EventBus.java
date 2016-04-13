@@ -1,5 +1,9 @@
 package com.gabriele.actor.internals;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import java.util.Collections;
@@ -11,9 +15,14 @@ public class EventBus {
 
     public final static String LOG_TAG = "EventBus";
 
+    private final Context context;
     private ActorRef listener;
     private final ConcurrentHashMap<Class<?>, Set<ActorRef>> clazzBindings = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<ActorRef, Set<Class<?>>> actorBindings = new ConcurrentHashMap<>();
+
+    public EventBus(Context context) {
+        this.context = context;
+    }
 
     public void pipeTo(ActorRef ref) {
         listener = ref;
@@ -38,6 +47,17 @@ public class EventBus {
             actorBindings.put(ref, clazzs);
         }
 
+    }
+
+    public void subscribe(String uri, final ActorRef ref) {
+        IntentFilter filter = new IntentFilter(uri);
+        BroadcastReceiver mReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ref.tell(intent, null);
+            }
+        };
+        getContext().registerReceiver(mReceiver, filter);
     }
 
     public void publish(Object obj, ActorRef sender) {
@@ -92,5 +112,9 @@ public class EventBus {
             subs.add(clazz.getSimpleName());
 
         return subs;
+    }
+
+    public Context getContext() {
+        return context;
     }
 }

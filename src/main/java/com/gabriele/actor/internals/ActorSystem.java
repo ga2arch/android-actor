@@ -1,5 +1,7 @@
 package com.gabriele.actor.internals;
 
+import android.content.Context;
+
 import com.gabriele.actor.testing.Probe;
 
 import java.lang.reflect.Constructor;
@@ -10,9 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ActorSystem implements ActorCreator {
 
-    private final EventBus eventBus = new EventBus();
+    private final Context context;
+    private final EventBus eventBus;
     private final Set<AbstractActor> actors = Collections.newSetFromMap(new ConcurrentHashMap<AbstractActor, Boolean>());
     private final ConcurrentHashMap<ActorRef, Probe> probes = new ConcurrentHashMap<>();
+
+    public ActorSystem(Context context) {
+        this.context = context;
+        this.eventBus = new EventBus(context);
+    }
 
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
         AbstractActor actor = actorRef.get();
@@ -44,8 +52,8 @@ public class ActorSystem implements ActorCreator {
             ActorRef self = new ActorRef(actor);
             dispatcher.setSystem(this);
             actors.add(actor);
-            ActorContext context = new ActorContext(this, parent, self, dispatcher);
-            actor.setContext(context);
+            ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
+            actor.setActorContext(actorContext);
             actor.preStart();
             return self;
 
@@ -74,6 +82,10 @@ public class ActorSystem implements ActorCreator {
         return actorOf(parent, actorClass, probe, new Props().withDispatcher(new ForkJoinDispatcher()));
     }
 
+    public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass) {
+        return actorOf(parent, actorClass, new Props().withDispatcher(new ForkJoinDispatcher()));
+    }
+
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe) {
         return actorOf(null, actorClass, probe);
     }
@@ -88,5 +100,9 @@ public class ActorSystem implements ActorCreator {
 
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Props props) {
         return actorOf(null, actorClass, props);
+    }
+
+    public Context getContext() {
+        return context;
     }
 }

@@ -1,5 +1,7 @@
 package com.gabriele.actor.internals;
 
+import android.content.Context;
+
 import com.gabriele.actor.testing.Probe;
 
 import java.util.ArrayDeque;
@@ -90,8 +92,17 @@ public class ActorContext implements ActorCreator {
         return parent;
     }
 
+    public Context getContext() {
+        return getSystem().getContext();
+    }
+
     public void setParent(ActorRef parent) {
         this.parent = parent;
+    }
+
+    @Override
+    public ActorRef actorOf(Class<? extends AbstractActor> actorClass) {
+        return getSystem().actorOf(self, actorClass);
     }
 
     @Override
