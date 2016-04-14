@@ -22,6 +22,12 @@ public class ActorSystem implements ActorCreator {
         this.eventBus = new EventBus(context);
     }
 
+    public void terminate() {
+        for (AbstractActor actor: actors) {
+            actor.getSelf().tell(new ActorMessage.PoisonPill(), ActorRef.noSender());
+        }
+    }
+
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
         AbstractActor actor = actorRef.get();
         actor.getMailbox().add(new ActorMessage(message, sender));

@@ -1,5 +1,6 @@
 package com.gabriele.actor;
 
+import android.test.mock.MockContext;
 import android.test.suitebuilder.annotation.LargeTest;
 
 import com.gabriele.actor.internals.AbstractActor;
@@ -24,7 +25,7 @@ public class ActorTests {
 
     @BeforeClass
     public static void setup() {
-        system = new ActorSystem();
+        system = new ActorSystem(new MockContext());
         eventBus = system.getEventBus();
     }
 

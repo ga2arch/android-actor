@@ -22,6 +22,7 @@ public class EventBus {
     private final ConcurrentHashMap<String, BroadcastReceiver> uriToReceiver = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<ActorRef, Set<String>> actorToReceivers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Class<?>, Set<ActorRef>> publishers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<?>, ActorMessage> sticky = new ConcurrentHashMap<>();
 
     public EventBus(Context context) {
         this.context = context;
@@ -56,6 +57,10 @@ public class EventBus {
                 pub.tell(new ActivateMessage(clazz), ref);
         }
 
+        ActorMessage o = sticky.get(clazz);
+        if (o != null)
+            ref.tell(o.getObject(), o.getSender());
+
         if (clazz != SubscribeMessage.class)
             publish(new SubscribeMessage(clazz), ref);
     }
@@ -82,9 +87,17 @@ public class EventBus {
     }
 
     public synchronized void publish(Object obj, ActorRef sender) {
+        publish(obj, sender, false);
+    }
+
+    public synchronized void publish(Object obj, ActorRef sender, boolean isSticky) {
         Log.d(LOG_TAG, "Publishing: " + obj);
 
         Class clazz = obj.getClass();
+        if (isSticky) {
+            sticky.put(clazz, new ActorMessage(obj, sender));
+        }
+
         while (clazz != null) {
             Set<ActorRef> refs = classToActors.get(clazz);
             if (refs != null) {

@@ -92,6 +92,10 @@ public class ActorContext implements ActorCreator {
         return parent;
     }
 
+    public ArrayList<ActorMessage> getStash() {
+        return stash;
+    }
+
     public Context getContext() {
         return getSystem().getContext();
     }
