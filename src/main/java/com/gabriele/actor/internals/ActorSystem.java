@@ -60,6 +60,7 @@ public class ActorSystem implements ActorCreator {
             ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
             actor.setActorContext(actorContext);
             actor.preStart();
+            dispatcher.dispatch(self);
             return self;
 
         } catch (NoSuchMethodException e) {
