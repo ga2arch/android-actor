@@ -14,25 +14,22 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EventBus {
 
     public final static String LOG_TAG = "EventBus";
+    private final int REPLAY_SIZE = 5;
 
     private final Context context;
-    private ActorRef listener;
     private final ConcurrentHashMap<Class<?>, Set<ActorRef>> classToActors = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<ActorRef, Set<Class<?>>> actorToClass = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, BroadcastReceiver> uriToReceiver = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<ActorRef, Set<String>> actorToReceivers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Class<?>, Set<ActorRef>> publishers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Class<?>, ActorMessage> sticky = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<?>, EvictingQueue<ActorMessage>> replay = new ConcurrentHashMap<>();
 
     public EventBus(Context context) {
         this.context = context;
     }
 
-    public void pipeTo(ActorRef ref) {
-        listener = ref;
-    }
-
-    public synchronized void  subscribe(Class clazz, ActorRef ref) {
+    public synchronized void subscribe(Class clazz, ActorRef ref) {
         Set<ActorRef> refs = classToActors.get(clazz);
         if (refs != null) {
             refs.add(ref);
@@ -55,6 +52,14 @@ public class EventBus {
         if (pubs != null) {
             for (ActorRef pub: pubs)
                 pub.tell(new ActivateMessage(clazz), ref);
+        }
+
+        EvictingQueue<ActorMessage> replayQueue = replay.get(clazz);
+        if (replayQueue != null) {
+            while (replayQueue.size() > 0) {
+                ActorMessage message = replayQueue.pop();
+                ref.tell(message.getObject(), message.getSender());
+            }
         }
 
         ActorMessage o = sticky.get(clazz);
@@ -98,18 +103,29 @@ public class EventBus {
             sticky.put(clazz, new ActorMessage(obj, sender));
         }
 
+        boolean sent = false;
         while (clazz != null) {
             Set<ActorRef> refs = classToActors.get(clazz);
             if (refs != null) {
                 for (ActorRef ref: refs) {
                     try {
                         ref.tell(obj, sender);
+                        sent = true;
                     } catch (ActorIsTerminatedException e) {
                         unsubscribe(ref);
                     }
                 }
             }
             clazz = clazz.getSuperclass();
+        }
+
+        if (!sent) {
+            EvictingQueue<ActorMessage> replayQueue = replay.get(obj.getClass());
+            if (replayQueue == null) {
+                replayQueue = new EvictingQueue<>(REPLAY_SIZE);
+                replay.put(obj.getClass(), replayQueue);
+            }
+            replayQueue.add(new ActorMessage(obj, sender));
         }
     }
 
@@ -123,6 +139,7 @@ public class EventBus {
 
                     if (refs.isEmpty()) {
                         classToActors.remove(clazz);
+                        replay.remove(clazz);
 
                         Set<ActorRef> pubs = publishers.get(clazz);
                         if (pubs != null) {
@@ -155,6 +172,8 @@ public class EventBus {
             clazzs.remove(ref);
             if (clazzs.isEmpty()) {
                 classToActors.remove(clazz);
+                replay.remove(clazz);
+
                 Set<ActorRef> pubs = publishers.get(clazz);
                 if (pubs != null) {
                     for (ActorRef pub: pubs)

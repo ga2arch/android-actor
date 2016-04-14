@@ -11,21 +11,21 @@ public abstract class AbstractActor implements ActorInterface {
     private final ConcurrentLinkedQueue<ActorMessage> mailbox = new ConcurrentLinkedQueue<>();
 
     /**
-     * Executed on the thread inside which the .tell is called
+     * Executed in the thread of the dispatcher of the parent
      */
     public void preStart() {
 
     }
 
     /**
-     * Executed in the dispatcher thread
+     * Executed in the dispatcher
      */
     public void onStart() {
 
     }
 
     /**
-     * Executed in the dispatcher thread
+     * Executed in the dispatcher
      */
     public void afterStop() {
 

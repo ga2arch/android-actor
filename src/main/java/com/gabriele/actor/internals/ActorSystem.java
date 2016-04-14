@@ -37,7 +37,6 @@ public class ActorSystem implements ActorCreator {
             probe.setSender(sender);
         }
         if (probe != null && !probe.toPropagate()) return;
-
         actor.getActorContext().getDispatcher().dispatch(actorRef);
     }
 
