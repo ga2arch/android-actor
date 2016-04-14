@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class Props {
 
-    private AbstractDispatcher dispatcher = new ForkJoinDispatcher();
+    private AbstractDispatcher dispatcher;
     private ArrayList<Class<?>> clazzs = new ArrayList<>();
     private Object[] args;
 

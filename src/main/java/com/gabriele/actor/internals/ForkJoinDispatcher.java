@@ -9,7 +9,13 @@ import java.util.concurrent.ForkJoinPool;
 public class ForkJoinDispatcher extends AbstractDispatcher {
     private final ExecutorService executorService;
 
-    public ForkJoinDispatcher() {
+    static final private ForkJoinDispatcher instance = new ForkJoinDispatcher();
+
+    public static ForkJoinDispatcher getInstance() {
+        return instance;
+    }
+
+    private ForkJoinDispatcher() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             executorService = new ForkJoinPool();
         } else {

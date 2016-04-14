@@ -79,11 +79,11 @@ public class ActorSystem implements ActorCreator {
     }
 
     public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass, Probe probe) {
-        return actorOf(parent, actorClass, probe, new Props().withDispatcher(new ForkJoinDispatcher()));
+        return actorOf(parent, actorClass, probe, new Props().withDispatcher(ForkJoinDispatcher.getInstance()));
     }
 
     public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass) {
-        return actorOf(parent, actorClass, new Props().withDispatcher(new ForkJoinDispatcher()));
+        return actorOf(parent, actorClass, new Props().withDispatcher(ForkJoinDispatcher.getInstance()));
     }
 
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe) {
@@ -95,7 +95,7 @@ public class ActorSystem implements ActorCreator {
     }
 
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass) {
-        return actorOf(actorClass, new Props().withDispatcher(new ForkJoinDispatcher()));
+        return actorOf(actorClass, new Props().withDispatcher(ForkJoinDispatcher.getInstance()));
     }
 
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Props props) {

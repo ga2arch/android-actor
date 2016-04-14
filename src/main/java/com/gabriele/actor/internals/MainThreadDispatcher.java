@@ -17,6 +17,15 @@ public class MainThreadDispatcher extends AbstractDispatcher {
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
+    private static final MainThreadDispatcher instance = new MainThreadDispatcher();
+
+    public static MainThreadDispatcher getInstance() {
+        return instance;
+    }
+
+    private MainThreadDispatcher() {
+    }
+
     private ExecutorService service = new ExecutorService() {
         @Override
         public void shutdown() {

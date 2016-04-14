@@ -58,6 +58,10 @@ public abstract class AbstractActor implements ActorInterface {
         getActorContext().unbecome();
     }
 
+    public EventBus getEventBus() {
+        return getSystem().getEventBus();
+    }
+
     public Context getContext() {
         return getActorContext().getContext();
     }

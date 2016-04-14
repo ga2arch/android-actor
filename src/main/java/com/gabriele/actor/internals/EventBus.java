@@ -21,6 +21,7 @@ public class EventBus {
     private final ConcurrentHashMap<ActorRef, Set<Class<?>>> actorToClass = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, BroadcastReceiver> uriToReceiver = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<ActorRef, Set<String>> actorToReceivers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<?>, Set<ActorRef>> publishers = new ConcurrentHashMap<>();
 
     public EventBus(Context context) {
         this.context = context;
@@ -47,6 +48,12 @@ public class EventBus {
             clazzs = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
             clazzs.add(clazz);
             actorToClass.put(ref, clazzs);
+        }
+
+        Set<ActorRef> pubs = publishers.get(clazz);
+        if (pubs != null) {
+            for (ActorRef pub: pubs)
+                pub.tell(new ActivateMessage(clazz), ref);
         }
 
         if (clazz != SubscribeMessage.class)
@@ -103,6 +110,13 @@ public class EventBus {
 
                     if (refs.isEmpty()) {
                         classToActors.remove(clazz);
+
+                        Set<ActorRef> pubs = publishers.get(clazz);
+                        if (pubs != null) {
+                            for (ActorRef pub: pubs)
+                                pub.tell(new DeactivateMessage(clazz), ref);
+                        }
+
                         if (clazz != UnsubscribeMessage.class)
                             publish(new UnsubscribeMessage(clazz), ref);
                     }
@@ -128,6 +142,11 @@ public class EventBus {
             clazzs.remove(ref);
             if (clazzs.isEmpty()) {
                 classToActors.remove(clazz);
+                Set<ActorRef> pubs = publishers.get(clazz);
+                if (pubs != null) {
+                    for (ActorRef pub: pubs)
+                        pub.tell(new DeactivateMessage(clazz), ref);
+                }
                 if (clazz != UnsubscribeMessage.class)
                     publish(new UnsubscribeMessage(clazz), ref);
             }
@@ -161,6 +180,24 @@ public class EventBus {
         return false;
     }
 
+    public synchronized void registerPublisher(Class<?> clazz, ActorRef ref) {
+        Set<ActorRef> refs = publishers.get(clazz);
+        if (refs != null) {
+            refs.add(ref);
+        } else {
+            refs = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
+            refs.add(ref);
+            publishers.put(clazz, refs);
+        }
+    }
+
+    public synchronized void unregisterPublisher(Class<?> clazz, ActorRef ref) {
+        Set<ActorRef> refs = publishers.get(clazz);
+        if (refs != null) {
+            refs.remove(ref);
+        }
+    }
+
     public Context getContext() {
         return context;
     }
@@ -185,6 +222,30 @@ public class EventBus {
         }
 
         public Class<?> getClazz() {
+            return event;
+        }
+    }
+
+    public static class ActivateMessage {
+        private Class<?> event;
+
+        public ActivateMessage(Class<?> event) {
+            this.event = event;
+        }
+
+        public Class<?> getEvent() {
+            return event;
+        }
+    }
+
+    public static class DeactivateMessage {
+        private Class<?> event;
+
+        public DeactivateMessage(Class<?> event) {
+            this.event = event;
+        }
+
+        public Class<?> getEvent() {
             return event;
         }
     }
