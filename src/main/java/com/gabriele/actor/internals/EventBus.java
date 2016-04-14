@@ -176,10 +176,10 @@ public class EventBus {
         }
     }
 
-    public synchronized HashSet<String> getSubscriptions() {
-        HashSet<String> subs = new HashSet<>();
+    public synchronized HashSet<Class<?>> getSubscriptions() {
+        HashSet<Class<?>> subs = new HashSet<>();
         for (Class<?> clazz: classToActors.keySet())
-            subs.add(clazz.getSimpleName());
+            subs.add(clazz);
 
         return subs;
     }

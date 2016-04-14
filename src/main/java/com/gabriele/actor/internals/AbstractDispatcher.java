@@ -31,7 +31,7 @@ public abstract class AbstractDispatcher {
                     public void run() {
                         AbstractActor actor = actorRef.get();
                         if (!actor.isStarted()) {
-                            actor.preStart();
+                            actor.onStart();
                             actor.setStarted();
                         }
 
