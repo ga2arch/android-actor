@@ -19,7 +19,7 @@ public class ActorSystem implements ActorCreator {
 
     public ActorSystem(Context context) {
         this.context = context;
-        this.eventBus = new EventBus(context);
+        this.eventBus = new EventBus(this);
     }
 
     public void terminate() {
