@@ -1,22 +1,22 @@
 package com.gabriele.actor.internals;
 
-import com.gabriele.actor.interfaces.ActorInterface;
+import com.gabriele.actor.interfaces.WithReceive;
 
 import java.lang.ref.WeakReference;
 
 public class DelegateActor extends AbstractActor {
 
-    protected WeakReference<ActorInterface> delegate;
+    protected WeakReference<WithReceive> delegate;
 
-    public DelegateActor(WeakReference<ActorInterface> delegate) {
+    public DelegateActor(WeakReference<WithReceive> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public void onReceive(Object message) throws Exception {
-        ActorInterface actor = delegate.get();
+    public void onReceive(Object o) throws Exception {
+        WithReceive actor = delegate.get();
         if (actor != null) {
-            actor.onReceive(message);
+            actor.onReceive(o);
         }
     }
 }

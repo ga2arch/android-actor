@@ -38,6 +38,10 @@ public class EventBus {
         publish(obj, sender, false);
     }
 
+    public void publishSticky(Object obj, ActorRef sender) {
+        publish(obj, sender, true);
+    }
+
     public void publish(Object obj, ActorRef sender, boolean isSticky) {
         eventBusRef.tell(new EventBus.PublishMessage(obj, sender, isSticky), sender);
     }

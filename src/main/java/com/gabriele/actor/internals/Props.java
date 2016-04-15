@@ -3,7 +3,7 @@ package com.gabriele.actor.internals;
 import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 
-import com.gabriele.actor.interfaces.ActorInterface;
+import com.gabriele.actor.interfaces.WithReceive;
 
 import java.util.ArrayList;
 
@@ -16,7 +16,7 @@ public class Props {
     public Props() { this.args = new Object[]{}; }
 
     public Props(Activity activity) {
-        if (!(activity instanceof ActorInterface))
+        if (!(activity instanceof WithReceive))
             throw new RuntimeException("Activity doesn't implement ActorInterface");
 
         this.args = new Object[]{activity};
@@ -24,7 +24,7 @@ public class Props {
     }
 
     public Props(AppCompatActivity activity) {
-        if (!(activity instanceof ActorInterface))
+        if (!(activity instanceof WithReceive))
             throw new RuntimeException("AppCompatActivity doesn't implement ActorInterface");
 
         this.args = new Object[]{activity};

@@ -1,5 +1,5 @@
 package com.gabriele.actor.interfaces;
 
 public interface OnReceiveFunction {
-    void onReceive(Object message);
+    void onReceive(Object o);
 }

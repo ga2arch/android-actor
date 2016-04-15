@@ -94,8 +94,8 @@ public class ActorTests {
     public static class Actor1 extends AbstractActor {
 
         @Override
-        public void onReceive(Object message) {
-            if (message instanceof BecomeEcho) {
+        public void onReceive(Object o) {
+            if (o instanceof BecomeEcho) {
                 getActorContext().become(echo);
                 unstashAll();
             }
@@ -105,8 +105,8 @@ public class ActorTests {
 
         OnReceiveFunction echo = new OnReceiveFunction() {
             @Override
-            public void onReceive(Object message) {
-                getSender().tell(message, getSelf());
+            public void onReceive(Object o) {
+                getSender().tell(o, getSelf());
             }
         };
     }
@@ -114,8 +114,8 @@ public class ActorTests {
     public static class Actor2 extends AbstractActor {
 
         @Override
-        public void onReceive(Object message) {
-            if (message == "hello")
+        public void onReceive(Object o) {
+            if (o == "hello")
                 getSender().tell("bonjour", getSelf());
         }
     }

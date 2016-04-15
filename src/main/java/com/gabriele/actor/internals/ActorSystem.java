@@ -48,6 +48,7 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void terminateActor(ActorRef ref) {
+        getEventBus().unsubscribe(ref);
         actors.remove(ref.get());
         ref.clear();
     }

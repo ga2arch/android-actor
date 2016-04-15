@@ -3,12 +3,12 @@ package com.gabriele.actor.internals;
 import android.content.Context;
 
 import com.gabriele.actor.eventbus.EventBus;
-import com.gabriele.actor.interfaces.ActorInterface;
+import com.gabriele.actor.interfaces.WithReceive;
 import com.gabriele.actor.interfaces.OnReceiveFunction;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public abstract class AbstractActor implements ActorInterface {
+public abstract class AbstractActor implements WithReceive {
 
     private ActorContext context;
     private boolean started = false;

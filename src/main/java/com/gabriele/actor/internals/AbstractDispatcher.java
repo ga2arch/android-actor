@@ -69,7 +69,6 @@ public abstract class AbstractDispatcher {
 
                             it.remove();
                         }
-                        //if (terminated) throw new ActorIsTerminatedException();
                         running.remove(actorRef);
                         if (!terminated && mailbox.size() > 0) dispatch(actorRef);
                     }
