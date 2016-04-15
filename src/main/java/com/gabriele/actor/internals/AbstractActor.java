@@ -35,6 +35,10 @@ public abstract class AbstractActor implements ActorInterface {
 
     }
 
+    protected void stopSelf() {
+        getSystem().publish(getSelf(), new ActorMessage.PoisonPill(), getSelf());
+    }
+
     public ConcurrentLinkedQueue<ActorMessage> getMailbox() {
         return mailbox;
     }

@@ -7,14 +7,19 @@ import java.lang.ref.WeakReference;
 public class ActorRef extends WeakReference<AbstractActor> {
 
     private int hashCode;
+    private ActorSystem system;
 
     public ActorRef(AbstractActor actor) {
         super(actor);
         hashCode = actor.hashCode();
     }
 
+    public void setSystem(ActorSystem system) {
+        this.system = system;
+    }
+
     public void tell(final Object message, final ActorRef sender) {
-        get().getActorContext().getSystem().publish(this, message, sender);
+        system.publish(this, message, sender);
     }
 
     public static ActorRef noSender() {

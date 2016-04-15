@@ -1,16 +1,29 @@
 package com.gabriele.actor.eventbus;
 
+import android.app.Activity;
+
+import com.gabriele.actor.android.ActivityActor;
+import com.gabriele.actor.dispatchers.MainThreadDispatcher;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
+import com.gabriele.actor.internals.Props;
 
 import java.util.HashSet;
 
 public class EventBus {
 
+    private ActorSystem system;
     private ActorRef eventBusRef;
 
     public EventBus(ActorSystem system) {
+        this.system = system;
         eventBusRef = system.actorOf(EventBusActor.class);
+    }
+
+    public void subscribe(Class clazz, Activity activity) {
+        ActorRef activityRef = system.actorOf(ActivityActor.class,
+                new Props(activity).withDispatcher(MainThreadDispatcher.getInstance()));
+        subscribe(clazz, activityRef);
     }
 
     public void subscribe(Class clazz, ActorRef ref) {

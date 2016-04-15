@@ -1,7 +1,6 @@
 package com.gabriele.actor.internals;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 
 import com.gabriele.actor.interfaces.ActorInterface;
@@ -32,11 +31,6 @@ public class Props {
         this.clazzs.add(AppCompatActivity.class);
     }
 
-    public Props(Context context) {
-        this.args = new Object[]{context};
-        this.clazzs.add(Context.class);
-    }
-
     public Props(Object... args) {
         this.args = args;
         buildClazz();
@@ -57,10 +51,7 @@ public class Props {
 
     private void buildClazz() {
         for (Object extra: getArgs()) {
-            if (extra instanceof Activity)
-                clazzs.add(Activity.class);
-            else
-                clazzs.add(extra.getClass());
+            clazzs.add(extra.getClass());
         }
     }
 

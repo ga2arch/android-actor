@@ -58,6 +58,7 @@ public class ActorSystem implements ActorCreator {
             AbstractActor actor = (AbstractActor) constructor.newInstance(props.getArgs());
             AbstractDispatcher dispatcher = props.getDispatcher();
             ActorRef self = new ActorRef(actor);
+            self.setSystem(this);
             dispatcher.setSystem(this);
             actors.add(actor);
             ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
