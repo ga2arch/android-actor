@@ -2,6 +2,9 @@ package com.gabriele.actor.internals;
 
 import android.content.Context;
 
+import com.gabriele.actor.dispatchers.ForkJoinDispatcher;
+import com.gabriele.actor.eventbus.EventBus;
+import com.gabriele.actor.interfaces.ActorCreator;
 import com.gabriele.actor.testing.Probe;
 
 import java.lang.reflect.Constructor;

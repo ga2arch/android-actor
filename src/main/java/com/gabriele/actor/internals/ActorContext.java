@@ -2,6 +2,8 @@ package com.gabriele.actor.internals;
 
 import android.content.Context;
 
+import com.gabriele.actor.interfaces.ActorCreator;
+import com.gabriele.actor.interfaces.OnReceiveFunction;
 import com.gabriele.actor.testing.Probe;
 
 import java.util.ArrayDeque;

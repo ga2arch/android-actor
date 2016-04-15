@@ -1,4 +1,4 @@
-package com.gabriele.actor.internals;
+package com.gabriele.actor.interfaces;
 
 public interface OnReceiveFunction {
     void onReceive(Object message);

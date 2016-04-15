@@ -1,5 +1,7 @@
 package com.gabriele.actor.internals;
 
+import com.gabriele.actor.interfaces.ActorInterface;
+
 import java.lang.ref.WeakReference;
 
 public class DelegateActor extends AbstractActor {
@@ -11,7 +13,7 @@ public class DelegateActor extends AbstractActor {
     }
 
     @Override
-    public void onReceive(Object message) {
+    public void onReceive(Object message) throws Exception {
         ActorInterface actor = delegate.get();
         if (actor != null) {
             actor.onReceive(message);

@@ -1,4 +1,7 @@
-package com.gabriele.actor.internals;
+package com.gabriele.actor.eventbus;
+
+import com.gabriele.actor.internals.ActorRef;
+import com.gabriele.actor.internals.ActorSystem;
 
 import java.util.HashSet;
 
@@ -16,7 +19,6 @@ public class EventBus {
 
     public void subscribe(String uri, final ActorRef ref) {
         eventBusRef.tell(new EventBus.SubscribeMessage(uri, ref), ref);
-
     }
 
     public void publish(Object obj, ActorRef sender) {

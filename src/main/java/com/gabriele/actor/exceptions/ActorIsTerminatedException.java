@@ -1,4 +1,4 @@
-package com.gabriele.actor.internals;
+package com.gabriele.actor.exceptions;
 
 public class ActorIsTerminatedException extends RuntimeException {
 }

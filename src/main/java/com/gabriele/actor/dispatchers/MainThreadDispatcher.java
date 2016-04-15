@@ -1,8 +1,10 @@
-package com.gabriele.actor.internals;
+package com.gabriele.actor.dispatchers;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+
+import com.gabriele.actor.internals.AbstractDispatcher;
 
 import java.util.Collection;
 import java.util.List;

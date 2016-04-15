@@ -1,4 +1,4 @@
-package com.gabriele.actor.internals;
+package com.gabriele.actor.eventbus;
 
 import android.support.v4.util.CircularArray;
 

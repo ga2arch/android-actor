@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 
+import com.gabriele.actor.interfaces.ActorInterface;
+
 import java.util.ArrayList;
 
 public class Props {

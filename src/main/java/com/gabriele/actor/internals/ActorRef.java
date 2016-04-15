@@ -1,5 +1,7 @@
 package com.gabriele.actor.internals;
 
+import com.gabriele.actor.exceptions.ActorIsTerminatedException;
+
 import java.lang.ref.WeakReference;
 
 public class ActorRef extends WeakReference<AbstractActor> {

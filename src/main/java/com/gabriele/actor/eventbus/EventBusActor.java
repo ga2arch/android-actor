@@ -1,10 +1,15 @@
-package com.gabriele.actor.internals;
+package com.gabriele.actor.eventbus;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
+
+import com.gabriele.actor.internals.AbstractActor;
+import com.gabriele.actor.exceptions.ActorIsTerminatedException;
+import com.gabriele.actor.internals.ActorMessage;
+import com.gabriele.actor.internals.ActorRef;
 
 import java.util.HashMap;
 import java.util.HashSet;

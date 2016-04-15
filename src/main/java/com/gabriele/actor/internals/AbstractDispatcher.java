@@ -1,5 +1,7 @@
 package com.gabriele.actor.internals;
 
+import com.gabriele.actor.interfaces.OnReceiveFunction;
+
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
@@ -51,7 +53,17 @@ public abstract class AbstractDispatcher {
                             context.setCurrentMessage(message);
                             Deque<OnReceiveFunction> stack = context.getStack();
                             if (stack.isEmpty())
-                                actor.onReceive(message.getObject());
+                                try {
+                                    actor.onReceive(message.getObject());
+                                } catch (SecurityException e) {
+                                    actorRef.tell(e, ActorRef.noSender());
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    actor.afterStop();
+                                    getSystem().terminateActor(actorRef);
+                                    terminated = true;
+                                }
                             else
                                 stack.getFirst().onReceive(message.getObject());
 

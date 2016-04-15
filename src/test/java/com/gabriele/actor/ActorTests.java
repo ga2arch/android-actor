@@ -6,8 +6,8 @@ import android.test.suitebuilder.annotation.LargeTest;
 import com.gabriele.actor.internals.AbstractActor;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
-import com.gabriele.actor.internals.EventBus;
-import com.gabriele.actor.internals.OnReceiveFunction;
+import com.gabriele.actor.eventbus.EventBus;
+import com.gabriele.actor.interfaces.OnReceiveFunction;
 import com.gabriele.actor.testing.Probe;
 
 import org.junit.AfterClass;

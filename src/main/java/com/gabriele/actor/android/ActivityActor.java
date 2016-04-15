@@ -1,7 +1,10 @@
-package com.gabriele.actor.internals;
+package com.gabriele.actor.android;
 
 import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
+
+import com.gabriele.actor.interfaces.ActorInterface;
+import com.gabriele.actor.internals.DelegateActor;
 
 import java.lang.ref.WeakReference;
 
@@ -21,7 +24,7 @@ public class ActivityActor extends DelegateActor {
     }
 
     @Override
-    public void onReceive(final Object message) {
+    public void onReceive(final Object message) throws Exception {
         delegate.get().onReceive(message);
     }
 }
