@@ -125,4 +125,8 @@ public class ActorContext implements ActorCreator {
     public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe) {
         return getSystem().actorOf(self, actorClass, probe);
     }
+
+    public ActorMessage getCurrentMessage() {
+        return currentMessage;
+    }
 }

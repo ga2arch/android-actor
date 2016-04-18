@@ -133,6 +133,9 @@ public class EventBusActor extends AbstractActor {
         Set<ActorRef> clazzs = classToActors.get(clazz);
         if (clazzs != null) {
             clazzs.remove(ref);
+            if (clazz != EventBus.UnsubscribedMessage.class)
+                publish(new EventBus.UnsubscribedMessage(clazz), ref);
+
             if (clazzs.isEmpty()) {
                 classToActors.remove(clazz);
                 replay.remove(clazz);
@@ -142,8 +145,6 @@ public class EventBusActor extends AbstractActor {
                     for (ActorRef pub: pubs)
                         pub.tell(new EventBus.DeactivateMessage(clazz), ref);
                 }
-                if (clazz != EventBus.UnsubscribedMessage.class)
-                    publish(new EventBus.UnsubscribedMessage(clazz), ref);
             }
         }
     }
@@ -162,24 +163,7 @@ public class EventBusActor extends AbstractActor {
         Set<Class<?>> clazzs = actorToClass.get(ref);
         if (clazzs != null) {
             for (Class clazz : clazzs) {
-                Set<ActorRef> refs = classToActors.get(clazz);
-                if (refs != null) {
-                    refs.remove(ref);
-
-                    if (refs.isEmpty()) {
-                        classToActors.remove(clazz);
-                        replay.remove(clazz);
-
-                        Set<ActorRef> pubs = publishers.get(clazz);
-                        if (pubs != null) {
-                            for (ActorRef pub : pubs)
-                                pub.tell(new EventBus.DeactivateMessage(clazz), ref);
-                        }
-
-                        if (clazz != EventBus.UnsubscribedMessage.class)
-                            publish(new EventBus.UnsubscribedMessage(clazz), ref);
-                    }
-                }
+                unsubscribe(clazz, ref);
             }
         }
 
