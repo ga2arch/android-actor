@@ -44,7 +44,7 @@ public abstract class AbstractDispatcher {
                             Log.e(LOG_TAG, e.getMessage(), e);
 
                         } finally {
-                            running.remove(semaphore);
+                            running.remove(actorRef);
                         }
                     }
                 });
