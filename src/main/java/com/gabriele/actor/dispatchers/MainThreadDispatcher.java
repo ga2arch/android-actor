@@ -5,13 +5,16 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import com.gabriele.actor.internals.AbstractDispatcher;
+import com.gabriele.actor.internals.ActorMessage;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -105,5 +108,10 @@ public class MainThreadDispatcher extends AbstractDispatcher {
     @Override
     protected ExecutorService getExecutorService() {
         return service;
+    }
+
+    @Override
+    public Queue<ActorMessage> getMailbox() {
+        return new LinkedBlockingQueue<>();
     }
 }

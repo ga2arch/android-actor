@@ -1,80 +1,57 @@
 package com.gabriele.actor.internals;
 
-import com.gabriele.actor.interfaces.OnReceiveFunction;
+import android.util.Log;
 
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.Set;
+import com.gabriele.actor.exceptions.ActorIsTerminatedException;
+
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
-
-import de.jkeylockmanager.manager.KeyLockManager;
-import de.jkeylockmanager.manager.KeyLockManagers;
-import de.jkeylockmanager.manager.LockCallback;
+import java.util.concurrent.Semaphore;
 
 public abstract class AbstractDispatcher {
-    protected ActorSystem system;
-    protected final KeyLockManager lockManager = KeyLockManagers.newLock();
-    protected final Set<ActorRef> running = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
+    private static final String LOG_TAG = "Dispatcher";
+
+    private ActorSystem system;
+    private final ConcurrentHashMap<ActorRef, Semaphore> running = new ConcurrentHashMap<>();
 
     protected abstract ExecutorService getExecutorService();
+    public abstract Queue<ActorMessage> getMailbox();
 
     public void dispatch(final ActorRef actorRef) {
-        lockManager.executeLocked(String.valueOf(actorRef.hashCode()), new LockCallback() {
-            @Override
-            public void doInLock() {
-                if (running.contains(actorRef)) return;
-                running.add(actorRef);
+        try {
+            final AbstractActor actor = actorRef.get();
+            synchronized (actor) {
+                running.putIfAbsent(actorRef, new Semaphore(1));
+                final Semaphore semaphore = running.get(actorRef);
+                if (semaphore.availablePermits() == 0) return;
 
+                semaphore.tryAcquire();
                 getExecutorService().execute(new Runnable() {
                     @Override
                     public void run() {
-                        AbstractActor actor = actorRef.get();
-                        if (!actor.isStarted()) {
-                            actor.onStart();
-                            actor.setStarted();
+                        try {
+                            actor.receive();
+                            semaphore.release();
+
+                            if (!actor.isTerminated() && actor.getMailbox().size() > 0)
+                                dispatch(actorRef);
+
+                        } catch (ActorIsTerminatedException e) {
+                            Log.e(LOG_TAG, e.getMessage(), e);
+
+                        } catch (Exception e) {
+                            Log.e(LOG_TAG, e.getMessage(), e);
+
+                        } finally {
+                            running.remove(semaphore);
                         }
-
-                        ConcurrentLinkedQueue<ActorMessage> mailbox = actorRef.get().getMailbox();
-                        Iterator<ActorMessage> it = mailbox.iterator();
-                        boolean terminated = false;
-                        while (it.hasNext() && !terminated) {
-                            ActorMessage message = it.next();
-                            if (message.getObject() instanceof ActorMessage.PoisonPill) {
-                                actor.afterStop();
-                                getSystem().terminateActor(actorRef);
-                                terminated = true;
-                            }
-
-                            ActorContext context = actor.getActorContext();
-                            context.setSender(message.getSender());
-                            context.setCurrentMessage(message);
-                            Deque<OnReceiveFunction> stack = context.getStack();
-                            if (stack.isEmpty())
-                                try {
-                                    actor.onReceive(message.getObject());
-                                } catch (SecurityException e) {
-                                    actorRef.tell(e, ActorRef.noSender());
-
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                    actor.afterStop();
-                                    getSystem().terminateActor(actorRef);
-                                    terminated = true;
-                                }
-                            else
-                                stack.getFirst().onReceive(message.getObject());
-
-                            it.remove();
-                        }
-                        running.remove(actorRef);
-                        if (!terminated && mailbox.size() > 0) dispatch(actorRef);
                     }
                 });
             }
-        });
+        } catch (ActorIsTerminatedException e) {
+            Log.d(LOG_TAG, e.getMessage(), e);
+        }
     }
 
     public ActorSystem getSystem() {

@@ -47,10 +47,10 @@ public class ActorSystem implements ActorCreator {
         return eventBus;
     }
 
-    public void terminateActor(ActorRef ref) {
-        getEventBus().unsubscribe(ref);
-        actors.remove(ref.get());
-        ref.clear();
+    public void terminateActor(AbstractActor actor) {
+        getEventBus().unsubscribe(actor.getSelf());
+        actors.remove(actor);
+        actor.getSelf().clear();
     }
 
     public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass, Props props) {
@@ -58,10 +58,13 @@ public class ActorSystem implements ActorCreator {
             Constructor<?> constructor = actorClass.getConstructor(props.getClazzs());
             AbstractActor actor = (AbstractActor) constructor.newInstance(props.getArgs());
             AbstractDispatcher dispatcher = props.getDispatcher();
+            actor.setMailbox(dispatcher.getMailbox());
+
             ActorRef self = new ActorRef(actor);
             self.setSystem(this);
             dispatcher.setSystem(this);
             actors.add(actor);
+
             ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
             actor.setActorContext(actorContext);
             actor.preStart();

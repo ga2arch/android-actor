@@ -3,10 +3,13 @@ package com.gabriele.actor.dispatchers;
 import android.os.Build;
 
 import com.gabriele.actor.internals.AbstractDispatcher;
+import com.gabriele.actor.internals.ActorMessage;
 
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ForkJoinDispatcher extends AbstractDispatcher {
     private final ExecutorService executorService;
@@ -27,5 +30,10 @@ public class ForkJoinDispatcher extends AbstractDispatcher {
 
     public ExecutorService getExecutorService() {
         return executorService;
+    }
+
+    @Override
+    public Queue<ActorMessage> getMailbox() {
+        return new LinkedBlockingQueue<>();
     }
 }

@@ -3,16 +3,19 @@ package com.gabriele.actor.internals;
 import android.content.Context;
 
 import com.gabriele.actor.eventbus.EventBus;
-import com.gabriele.actor.interfaces.WithReceive;
 import com.gabriele.actor.interfaces.OnReceiveFunction;
+import com.gabriele.actor.interfaces.WithReceive;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.Queue;
 
 public abstract class AbstractActor implements WithReceive {
 
     private ActorContext context;
     private boolean started = false;
-    private final ConcurrentLinkedQueue<ActorMessage> mailbox = new ConcurrentLinkedQueue<>();
+    private boolean terminated = false;
+    private Queue<ActorMessage> mailbox;
 
     /**
      * Executed in the thread of the dispatcher of the parent
@@ -35,11 +38,57 @@ public abstract class AbstractActor implements WithReceive {
 
     }
 
+    void receive() throws Exception {
+        if (!isStarted()) {
+            onStart();
+            setStarted();
+        }
+
+        Iterator<ActorMessage> it = getMailbox().iterator();
+        while (it.hasNext() && !isTerminated()) {
+            ActorMessage message = it.next();
+            ActorContext context = getActorContext();
+            context.setSender(message.getSender());
+            context.setCurrentMessage(message);
+            Deque<OnReceiveFunction> stack = context.getStack();
+
+            try {
+                if (stack.isEmpty()) {
+                    onReceive(message.getObject());
+
+                } else {
+                    stack.getFirst().onReceive(message.getObject());
+                }
+
+                if (message.getObject() instanceof ActorMessage.PoisonPill) {
+                    terminate();
+                }
+                it.remove();
+
+            } catch (SecurityException e) {
+                getSelf().tell(e, ActorRef.noSender());
+
+            } catch (Exception e) {
+                terminate();
+
+                throw e;
+            }
+        }
+    }
+
     protected void stopSelf() {
         getSystem().publish(getSelf(), new ActorMessage.PoisonPill(), getSelf());
     }
 
-    public ConcurrentLinkedQueue<ActorMessage> getMailbox() {
+    private void terminate() {
+        afterStop();
+        getMailbox().clear();
+        setTerminated();
+
+        getSystem().terminateActor(this);
+    }
+
+    public Queue<ActorMessage> getMailbox() {
         return mailbox;
     }
 
@@ -91,8 +140,20 @@ public abstract class AbstractActor implements WithReceive {
         return started;
     }
 
+    public boolean isTerminated() {
+        return terminated;
+    }
+
+    public void setTerminated() {
+        this.terminated = true;
+    }
+
     public void setStarted() {
         this.started = true;
+    }
+
+    public void setMailbox(Queue<ActorMessage> mailbox) {
+        this.mailbox = mailbox;
     }
 }
 
