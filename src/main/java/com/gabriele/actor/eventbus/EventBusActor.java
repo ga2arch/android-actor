@@ -58,7 +58,7 @@ public class EventBusActor extends AbstractActor {
             EventBus.UnregisterPublisherMessage message = ((EventBus.UnregisterPublisherMessage) o);
             unregisterPublisher(message.event, message.ref);
 
-        } else if (o instanceof EventBus.AskSubscrptionsMessage) {
+        } else if (o instanceof EventBus.AskSubscriptionsMessage) {
             HashSet<Class<?>> subs = new HashSet<>();
             for (Class<?> clazz: classToActors.keySet())
                 subs.add(clazz);

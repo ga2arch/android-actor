@@ -59,7 +59,7 @@ public class EventBus {
     }
 
     public void askSubscriptions(ActorRef ref) {
-        eventBusRef.tell(new EventBus.AskSubscrptionsMessage(), ref);
+        eventBusRef.tell(new AskSubscriptionsMessage(), ref);
     }
 
 
@@ -166,7 +166,7 @@ public class EventBus {
         }
     }
 
-    public static class AskSubscrptionsMessage {
+    public static class AskSubscriptionsMessage {
 
     }
 
