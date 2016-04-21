@@ -1,12 +1,7 @@
 package com.gabriele.actor.eventbus;
 
-import android.app.Activity;
-
-import com.gabriele.actor.android.ActivityActor;
-import com.gabriele.actor.dispatchers.MainThreadDispatcher;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
-import com.gabriele.actor.internals.Props;
 
 import java.util.HashSet;
 
@@ -20,14 +15,12 @@ public class EventBus {
         eventBusRef = system.actorOf(EventBusActor.class);
     }
 
-    public void subscribe(Class clazz, Activity activity) {
-        ActorRef activityRef = system.actorOf(ActivityActor.class,
-                new Props(activity).withDispatcher(MainThreadDispatcher.getInstance()));
-        subscribe(clazz, activityRef);
+    public void subscribe(Class clazz, ActorRef ref) {
+        eventBusRef.tell(new EventBus.SubscribeMessage(clazz, ref, false), ref);
     }
 
-    public void subscribe(Class clazz, ActorRef ref) {
-        eventBusRef.tell(new EventBus.SubscribeMessage(clazz, ref), ref);
+    public void subscribeSilent(Class clazz, ActorRef ref) {
+        eventBusRef.tell(new EventBus.SubscribeMessage(clazz, ref, true), ref);
     }
 
     public void subscribe(String uri, final ActorRef ref) {
@@ -72,6 +65,7 @@ public class EventBus {
     }
 
     public static class SubscribeMessage {
+        boolean silent;
         Class<?> event;
         ActorRef ref;
         String uri;
@@ -81,9 +75,10 @@ public class EventBus {
             this.ref = ref;
         }
 
-        public SubscribeMessage(Class<?> event, ActorRef ref) {
+        public SubscribeMessage(Class<?> event, ActorRef ref, boolean silent) {
             this.event = event;
             this.ref = ref;
+            this.silent = silent;
         }
     }
 

@@ -35,7 +35,7 @@ public class EventBusActor extends AbstractActor {
             if (message.uri != null)
                 subscribe(message.uri, message.ref);
             else
-                subscribe(message.event, message.ref);
+                subscribe(message.event, message.ref, message.silent);
 
         } else if (o instanceof EventBus.UnsubscribeMessage) {
             EventBus.UnsubscribeMessage message = ((EventBus.UnsubscribeMessage) o);
@@ -67,7 +67,7 @@ public class EventBusActor extends AbstractActor {
         }
     }
 
-    protected void subscribe(Class clazz, ActorRef ref) {
+    protected void subscribe(Class clazz, ActorRef ref, boolean silent) {
         HashSet<ActorRef> refs = classToActors.get(clazz);
         if (refs != null) {
             refs.add(ref);
@@ -104,7 +104,7 @@ public class EventBusActor extends AbstractActor {
         if (o != null)
             ref.tell(o.getObject(), o.getSender());
 
-        if (clazz != EventBus.SubscribedMessage.class)
+        if (!silent)
             publish(new EventBus.SubscribedMessage(clazz), ref);
     }
 
