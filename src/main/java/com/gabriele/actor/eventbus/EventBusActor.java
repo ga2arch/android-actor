@@ -6,13 +6,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
-import com.gabriele.actor.internals.AbstractActor;
 import com.gabriele.actor.exceptions.ActorIsTerminatedException;
+import com.gabriele.actor.internals.AbstractActor;
 import com.gabriele.actor.internals.ActorMessage;
 import com.gabriele.actor.internals.ActorRef;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class EventBusActor extends AbstractActor {
@@ -20,13 +21,13 @@ public class EventBusActor extends AbstractActor {
     public final static String LOG_TAG = "EventBusActor";
     protected final int REPLAY_SIZE = 5;
 
-    private final HashMap<Class<?>, HashSet<ActorRef>> classToActors = new HashMap<>();
-    private final HashMap<ActorRef, HashSet<Class<?>>> actorToClass = new HashMap<>();
-    private final HashMap<String, BroadcastReceiver> uriToReceiver = new HashMap<>();
-    private final HashMap<ActorRef, HashSet<String>> actorToReceivers = new HashMap<>();
-    private final HashMap<Class<?>, HashSet<ActorRef>> publishers = new HashMap<>();
-    private final HashMap<Class<?>, ActorMessage> sticky = new HashMap<>();
-    private final HashMap<Class<?>, EvictingQueue<ActorMessage>> replay = new HashMap<>();
+    private final Map<Class<?>, Set<ActorRef>> classToActors = new HashMap<>();
+    private final Map<ActorRef, Set<Class<?>>> actorToClass = new HashMap<>();
+    private final Map<String, BroadcastReceiver> uriToReceiver = new HashMap<>();
+    private final Map<ActorRef, Set<String>> actorToReceivers = new HashMap<>();
+    private final Map<Class<?>, Set<ActorRef>> publishers = new HashMap<>();
+    private final Map<Class<?>, ActorMessage> sticky = new HashMap<>();
+    private final Map<Class<?>, EvictingQueue<ActorMessage>> replay = new HashMap<>();
 
     @Override
     public void onReceive(Object o) {
@@ -68,7 +69,7 @@ public class EventBusActor extends AbstractActor {
     }
 
     protected void subscribe(Class clazz, ActorRef ref, boolean silent) {
-        HashSet<ActorRef> refs = classToActors.get(clazz);
+        Set<ActorRef> refs = classToActors.get(clazz);
         if (refs != null) {
             refs.add(ref);
         } else {
@@ -77,7 +78,7 @@ public class EventBusActor extends AbstractActor {
             classToActors.put(clazz, refs);
         }
 
-        HashSet<Class<?>> clazzs = actorToClass.get(ref);
+        Set<Class<?>> clazzs = actorToClass.get(ref);
         if (clazzs != null) {
             clazzs.add(clazz);
         } else {
@@ -119,7 +120,7 @@ public class EventBusActor extends AbstractActor {
         getContext().registerReceiver(receiver, filter);
         uriToReceiver.put(uri, receiver);
 
-        HashSet<String> receivers = actorToReceivers.get(ref);
+        Set<String> receivers = actorToReceivers.get(ref);
         if (receivers != null) {
             receivers.add(uri);
         } else {
@@ -218,7 +219,7 @@ public class EventBusActor extends AbstractActor {
     }
 
     public void registerPublisher(Class<?> clazz, ActorRef ref) {
-        HashSet<ActorRef> refs = publishers.get(clazz);
+        Set<ActorRef> refs = publishers.get(clazz);
         if (refs != null) {
             refs.add(ref);
         } else {
