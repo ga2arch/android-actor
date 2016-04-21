@@ -7,12 +7,16 @@ import com.gabriele.actor.exceptions.ActorIsTerminatedException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractDispatcher {
     private static final String LOG_TAG = "Dispatcher";
 
     private ActorSystem system;
+    private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     private final ConcurrentHashMap<ActorRef, Semaphore> running = new ConcurrentHashMap<>();
 
     protected abstract ExecutorService getExecutorService();
@@ -45,6 +49,15 @@ public abstract class AbstractDispatcher {
 
                         } finally {
                             running.remove(actorRef);
+                            // Release global wakelock is there are no running actor in 10 seconds.
+                            if (running.isEmpty())
+                                service.schedule(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (running.isEmpty())
+                                            getSystem().releaseWakeLock();
+                                    }
+                                }, 10, TimeUnit.SECONDS);
                         }
                     }
                 });

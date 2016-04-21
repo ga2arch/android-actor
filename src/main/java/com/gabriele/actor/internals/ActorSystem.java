@@ -1,6 +1,8 @@
 package com.gabriele.actor.internals;
 
 import android.content.Context;
+import android.os.PowerManager;
+import android.util.Log;
 
 import com.gabriele.actor.dispatchers.ForkJoinDispatcher;
 import com.gabriele.actor.eventbus.EventBus;
@@ -12,22 +14,42 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class ActorSystem implements ActorCreator {
+
+    public static final String LOG_TAG = "ActorSystem";
 
     private final Context context;
     private final EventBus eventBus;
     private final Set<AbstractActor> actors = Collections.newSetFromMap(new ConcurrentHashMap<AbstractActor, Boolean>());
     private final ConcurrentHashMap<ActorRef, Probe> probes = new ConcurrentHashMap<>();
+    private final PowerManager.WakeLock wakeLock;
 
     public ActorSystem(Context context) {
         this.context = context;
         this.eventBus = new EventBus(this);
+        PowerManager powerManager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActorSystem");
+        wakeLock.setReferenceCounted(false);
     }
 
     public void terminate() {
         for (AbstractActor actor: actors) {
             actor.getSelf().tell(new ActorMessage.PoisonPill(), ActorRef.noSender());
+        }
+    }
+
+    public void acquireWakeLock() {
+        wakeLock.acquire(TimeUnit.MINUTES.toMillis(5));
+        Log.d(LOG_TAG, "Wakelock acquired");
+
+    }
+
+    public void releaseWakeLock() {
+        if (wakeLock.isHeld()) {
+            wakeLock.release();
+            Log.d(LOG_TAG, "Wakelock released");
         }
     }
 

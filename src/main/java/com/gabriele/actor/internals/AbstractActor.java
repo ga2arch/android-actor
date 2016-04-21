@@ -47,6 +47,8 @@ public abstract class AbstractActor implements WithReceive {
         Iterator<ActorMessage> it = getMailbox().iterator();
         while (it.hasNext() && !isTerminated()) {
             ActorMessage message = it.next();
+            it.remove();
+
             ActorContext context = getActorContext();
             context.setSender(message.getSender());
             context.setCurrentMessage(message);
@@ -63,7 +65,6 @@ public abstract class AbstractActor implements WithReceive {
                 if (message.getObject() instanceof ActorMessage.PoisonPill) {
                     terminate();
                 }
-                it.remove();
 
             } catch (SecurityException e) {
                 getSelf().tell(e, ActorRef.noSender());
