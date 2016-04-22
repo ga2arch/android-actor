@@ -23,6 +23,8 @@ public class EvictingQueue<T> {
         return array.popLast();
     }
 
+    public T get(int n) { return array.get(size()-n-1); }
+
     public int size() {
         return array.size();
     }
