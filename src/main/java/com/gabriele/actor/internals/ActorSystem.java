@@ -41,9 +41,10 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void acquireWakeLock() {
-        wakeLock.acquire(TimeUnit.MINUTES.toMillis(5));
-        Log.d(LOG_TAG, "Wakelock acquired");
-
+        if (!wakeLock.isHeld()) {
+            wakeLock.acquire(TimeUnit.MINUTES.toMillis(5));
+            Log.d(LOG_TAG, "Wakelock acquired");
+        }
     }
 
     public void releaseWakeLock() {
