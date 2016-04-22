@@ -20,14 +20,14 @@ public abstract class AbstractActor implements WithReceive {
     /**
      * Executed in the thread of the dispatcher of the parent
      */
-    public void preStart() {
+    public void onCreate() {
 
     }
 
     /**
      * Executed in the dispatcher
      */
-    public void onStart() {
+    public void preStart() {
 
     }
 
@@ -40,7 +40,7 @@ public abstract class AbstractActor implements WithReceive {
 
     void receive() throws Exception {
         if (!isStarted()) {
-            onStart();
+            preStart();
             setStarted();
         }
 

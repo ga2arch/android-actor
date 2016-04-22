@@ -19,8 +19,8 @@ public class ActivityActor extends DelegateActor {
     }
 
     @Override
-    public void preStart() {
-        super.preStart();
+    public void onCreate() {
+        super.onCreate();
     }
 
     @Override

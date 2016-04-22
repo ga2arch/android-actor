@@ -89,7 +89,7 @@ public class ActorSystem implements ActorCreator {
 
             ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
             actor.setActorContext(actorContext);
-            actor.preStart();
+            actor.onCreate();
             dispatcher.dispatch(self);
             return self;
 
