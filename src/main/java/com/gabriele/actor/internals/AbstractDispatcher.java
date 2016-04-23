@@ -20,31 +20,32 @@ public abstract class AbstractDispatcher {
     private final ConcurrentHashMap<ActorRef, Semaphore> running = new ConcurrentHashMap<>();
 
     protected abstract ExecutorService getExecutorService();
+
     public abstract Queue<ActorMessage> getMailbox();
 
     public void dispatch(final ActorRef actorRef) {
         try {
             final AbstractActor actor = actorRef.get();
-            synchronized (actor) {
-                synchronized (running) {
-                    running.putIfAbsent(actorRef, new Semaphore(1));
-                    final Semaphore semaphore = running.get(actorRef);
-                    if (semaphore.availablePermits() == 0) return;
-                    semaphore.tryAcquire();
+            synchronized (running) {
+                running.putIfAbsent(actorRef, new Semaphore(1));
+                final Semaphore semaphore = running.get(actorRef);
+                if (semaphore.availablePermits() == 0) return;
+                semaphore.tryAcquire();
 
-                    getExecutorService().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                actor.receive();
+                getExecutorService().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            actor.receive();
 
-                            } catch (ActorIsTerminatedException e) {
-                                Log.e(LOG_TAG, e.getMessage(), e);
+                        } catch (ActorIsTerminatedException e) {
+                            Log.e(LOG_TAG, e.getMessage(), e);
 
-                            } catch (Exception e) {
-                                Log.e(LOG_TAG, e.getMessage(), e);
+                        } catch (Exception e) {
+                            Log.e(LOG_TAG, e.getMessage(), e);
 
-                            } finally {
+                        } finally {
+                            synchronized (running) {
                                 semaphore.release();
                                 if (!actor.isTerminated() && actor.getMailbox().size() > 0) {
                                     running.remove(actorRef);
@@ -63,8 +64,8 @@ public abstract class AbstractDispatcher {
                                 }
                             }
                         }
-                    });
-                }
+                    }
+                });
             }
         } catch (ActorIsTerminatedException e) {
             Log.d(LOG_TAG, e.getMessage(), e);
