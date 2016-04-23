@@ -26,41 +26,45 @@ public abstract class AbstractDispatcher {
         try {
             final AbstractActor actor = actorRef.get();
             synchronized (actor) {
-                running.putIfAbsent(actorRef, new Semaphore(1));
-                final Semaphore semaphore = running.get(actorRef);
-                if (semaphore.availablePermits() == 0) return;
+                synchronized (running) {
+                    running.putIfAbsent(actorRef, new Semaphore(1));
+                    final Semaphore semaphore = running.get(actorRef);
+                    if (semaphore.availablePermits() == 0) return;
+                    semaphore.tryAcquire();
 
-                semaphore.tryAcquire();
-                getExecutorService().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            actor.receive();
-                            semaphore.release();
+                    getExecutorService().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                actor.receive();
 
-                            if (!actor.isTerminated() && actor.getMailbox().size() > 0)
-                                dispatch(actorRef);
+                            } catch (ActorIsTerminatedException e) {
+                                Log.e(LOG_TAG, e.getMessage(), e);
 
-                        } catch (ActorIsTerminatedException e) {
-                            Log.e(LOG_TAG, e.getMessage(), e);
+                            } catch (Exception e) {
+                                Log.e(LOG_TAG, e.getMessage(), e);
 
-                        } catch (Exception e) {
-                            Log.e(LOG_TAG, e.getMessage(), e);
-
-                        } finally {
-                            running.remove(actorRef);
-                            // Release global wakelock is there are no running actor in 10 seconds.
-                            if (running.isEmpty())
-                                service.schedule(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (running.isEmpty())
-                                            getSystem().releaseWakeLock();
-                                    }
-                                }, 10, TimeUnit.SECONDS);
+                            } finally {
+                                semaphore.release();
+                                if (!actor.isTerminated() && actor.getMailbox().size() > 0) {
+                                    running.remove(actorRef);
+                                    dispatch(actorRef);
+                                } else {
+                                    running.remove(actorRef);
+                                    // Release global wakelock is there are no running actor in 10 seconds.
+                                    if (running.isEmpty())
+                                        service.schedule(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if (running.isEmpty())
+                                                    getSystem().releaseWakeLock();
+                                            }
+                                        }, 10, TimeUnit.SECONDS);
+                                }
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         } catch (ActorIsTerminatedException e) {
             Log.d(LOG_TAG, e.getMessage(), e);

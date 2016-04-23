@@ -20,4 +20,8 @@ public class ActorMessage {
     public static class PoisonPill {
 
     }
+
+    public static class Terminated {
+
+    }
 }

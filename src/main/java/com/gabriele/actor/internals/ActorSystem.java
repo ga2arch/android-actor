@@ -70,7 +70,6 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void terminateActor(AbstractActor actor) {
-        getEventBus().unsubscribe(actor.getSelf());
         actors.remove(actor);
         actor.getSelf().clear();
     }

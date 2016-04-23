@@ -75,7 +75,10 @@ public final class Props {
     }
 
     public Object[] getArgs() {
-        return Arrays.copyOf(args, args.length);
+        if (args == null)
+            return new Object[]{};
+        else
+            return Arrays.copyOf(args, args.length);
     }
 
     private void buildClazz() {

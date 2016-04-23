@@ -68,8 +68,7 @@ public abstract class AbstractActor implements WithReceive {
                 getSelf().tell(e, ActorRef.noSender());
 
             } catch (Exception e) {
-                terminate();
-
+                restart();
                 throw e;
 
             } finally {
@@ -84,10 +83,17 @@ public abstract class AbstractActor implements WithReceive {
 
     private void terminate() {
         afterStop();
+        getEventBus().unsubscribe(getSelf());
         getMailbox().clear();
         setTerminated();
-
+        if (getActorContext().getParent() != null) {
+            getActorContext().getParent().tell(new ActorMessage.Terminated(), getSelf());
+        }
         getSystem().terminateActor(this);
+    }
+
+    private void restart() {
+        preStart();
     }
 
     public Queue<ActorMessage> getMailbox() {
