@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.PowerManager;
 import android.util.Log;
 
-import com.gabriele.actor.dispatchers.ForkJoinDispatcher;
 import com.gabriele.actor.eventbus.EventBus;
 import com.gabriele.actor.interfaces.ActorCreator;
 import com.gabriele.actor.testing.Probe;
@@ -76,9 +75,9 @@ public class ActorSystem implements ActorCreator {
         actor.getSelf().clear();
     }
 
-    public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass, Props props) {
+    public ActorRef actorOf(ActorRef parent, Props props) {
         try {
-            Constructor<?> constructor = actorClass.getConstructor(props.getClazzs());
+            Constructor<?> constructor = props.getActorClazz().getConstructor(props.getClazzs());
             AbstractActor actor = (AbstractActor) constructor.newInstance(props.getArgs());
             AbstractDispatcher dispatcher = props.getDispatcher();
             actor.setMailbox(dispatcher.getMailbox());
@@ -108,38 +107,27 @@ public class ActorSystem implements ActorCreator {
         return null;
     }
 
-    public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass, Probe probe, Props props) {
-        ActorRef ref = actorOf(parent, actorClass, props);
-        probes.put(ref, probe);
-        probe.setReceiver(ref);
-        return ref;
-    }
 
-    public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass, Probe probe) {
-        return actorOf(parent, actorClass, probe, new Props().withDispatcher(ForkJoinDispatcher.getInstance()));
-    }
-
-    public ActorRef actorOf(ActorRef parent, Class<? extends AbstractActor> actorClass) {
-        return actorOf(parent, actorClass, new Props().withDispatcher(ForkJoinDispatcher.getInstance()));
-    }
-
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe) {
-        return actorOf(null, actorClass, probe);
-    }
-
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe, Props props) {
-        return actorOf(null, actorClass, probe, props);
-    }
-
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass) {
-        return actorOf(actorClass, new Props().withDispatcher(ForkJoinDispatcher.getInstance()));
-    }
-
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Props props) {
-        return actorOf(null, actorClass, props);
-    }
 
     public Context getContext() {
         return context;
+    }
+
+    public ActorRef actorOf(ActorRef parent, Props props, Probe probe) {
+        ActorRef ref = actorOf(parent, props);
+        probes.put(ref, probe);
+        return ref;
+    }
+
+    @Override
+    public ActorRef actorOf(Props props) {
+        return actorOf(null, props);
+    }
+
+    @Override
+    public ActorRef actorOf(Props props, Probe probe) {
+        ActorRef ref = actorOf(props);
+        probes.put(ref, probe);
+        return ref;
     }
 }

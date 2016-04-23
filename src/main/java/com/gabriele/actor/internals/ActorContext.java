@@ -106,27 +106,19 @@ public class ActorContext implements ActorCreator {
         this.parent = parent;
     }
 
-    @Override
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass) {
-        return getSystem().actorOf(self, actorClass);
-    }
 
-    @Override
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Props props) {
-        return getSystem().actorOf(self, actorClass, props);
-    }
-
-    @Override
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe, Props props) {
-        return getSystem().actorOf(self, actorClass, probe, props);
-    }
-
-    @Override
-    public ActorRef actorOf(Class<? extends AbstractActor> actorClass, Probe probe) {
-        return getSystem().actorOf(self, actorClass, probe);
-    }
 
     public ActorMessage getCurrentMessage() {
         return currentMessage;
+    }
+
+    @Override
+    public ActorRef actorOf(Props props) {
+        return getSystem().actorOf(getSelf(), props);
+    }
+
+    @Override
+    public ActorRef actorOf(Props props, Probe probe) {
+        return getSystem().actorOf(getSelf(), props, probe);
     }
 }

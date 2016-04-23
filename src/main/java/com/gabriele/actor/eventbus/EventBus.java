@@ -2,6 +2,7 @@ package com.gabriele.actor.eventbus;
 
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
+import com.gabriele.actor.internals.Props;
 
 import java.util.HashSet;
 
@@ -12,7 +13,7 @@ public class EventBus {
 
     public EventBus(ActorSystem system) {
         this.system = system;
-        eventBusRef = system.actorOf(EventBusActor.class);
+        eventBusRef = system.actorOf(Props.create(EventBusActor.class));
     }
 
     public void subscribe(Class clazz, ActorRef ref) {

@@ -8,6 +8,7 @@ import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
 import com.gabriele.actor.eventbus.EventBus;
 import com.gabriele.actor.interfaces.OnReceiveFunction;
+import com.gabriele.actor.internals.Props;
 import com.gabriele.actor.testing.Probe;
 
 import org.junit.AfterClass;
@@ -38,7 +39,7 @@ public class ActorTests {
     @Test
     public void testActorMessage() {
         Probe probe = new Probe(false);
-        ActorRef ref = system.actorOf(Actor1.class, probe);
+        ActorRef ref = system.actorOf(Props.create(Actor1.class), probe);
         ref.tell("test", null);
         probe.expectMessage("test", 10);
     }
@@ -46,7 +47,7 @@ public class ActorTests {
     @Test
     public void testEventBus() {
         Probe probe = new Probe();
-        ActorRef ref = system.actorOf(Actor1.class, probe);
+        ActorRef ref = system.actorOf(Props.create(Actor1.class), probe);
         eventBus.subscribe(Event.class, ref);
 
         Event event = new Event();
@@ -59,8 +60,8 @@ public class ActorTests {
         Probe probe1 = new Probe();
         Probe probe2 = new Probe();
 
-        ActorRef ref1 = system.actorOf(Actor1.class, probe1);
-        ActorRef ref2 = system.actorOf(Actor2.class, probe2);
+        ActorRef ref1 = system.actorOf(Props.create(Actor1.class), probe1);
+        ActorRef ref2 = system.actorOf(Props.create(Actor2.class), probe2);
 
         ref2.tell("hello", ref1);
         probe2.expectMessage("hello", 10);
@@ -70,8 +71,8 @@ public class ActorTests {
     @Test
     public void testBecome() {
         Probe probe = new Probe();
-        ActorRef ref1 = system.actorOf(Actor1.class);
-        ActorRef ref2 = system.actorOf(Actor2.class, probe);
+        ActorRef ref1 = system.actorOf(Props.create(Actor1.class));
+        ActorRef ref2 = system.actorOf(Props.create(Actor2.class), probe);
 
         ref1.tell(new BecomeEcho(), null);
         ref1.tell("ciao", ref2);
@@ -82,8 +83,8 @@ public class ActorTests {
     @Test
     public void testStash() {
         Probe probe = new Probe();
-        ActorRef ref1 = system.actorOf(Actor1.class);
-        ActorRef ref2 = system.actorOf(Actor2.class, probe);
+        ActorRef ref1 = system.actorOf(Props.create(Actor1.class));
+        ActorRef ref2 = system.actorOf(Props.create(Actor2.class), probe);
 
         ref1.tell("ciao", ref2);
         ref1.tell(new BecomeEcho(), null);
