@@ -3,6 +3,7 @@ package com.gabriele.actor.internals;
 import android.content.Context;
 
 import com.gabriele.actor.eventbus.EventBus;
+import com.gabriele.actor.exceptions.ActorIsTerminatedException;
 import com.gabriele.actor.interfaces.OnReceiveFunction;
 import com.gabriele.actor.interfaces.WithReceive;
 
@@ -39,6 +40,9 @@ public abstract class AbstractActor implements WithReceive {
     }
 
     void receive() throws Exception {
+        if (isTerminated())
+            throw new ActorIsTerminatedException();
+
         if (!isStarted()) {
             preStart();
             setStarted();
@@ -153,6 +157,7 @@ public abstract class AbstractActor implements WithReceive {
 
     public void setTerminated() {
         this.terminated = true;
+        getSelf().setTerminated();
     }
 
     public void setStarted() {
