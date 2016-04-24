@@ -45,7 +45,6 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
     protected void onPause() {
         super.onPause();
         getSelf().tell(new ActivityActor.ActivityPausedMessage(), getSelf());
-        getEventBus().unsubscribe(ref);
     }
 
     @Override

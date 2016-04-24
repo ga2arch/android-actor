@@ -56,6 +56,9 @@ public class ActorSystem implements ActorCreator {
 
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
         AbstractActor actor = actors.get(actorRef.getPath());
+        if (actor == null)
+            throw new ActorIsTerminatedException();
+
         actor.getMailbox().add(new ActorMessage(message, sender));
         synchronized (probes) {
             Probe probe = probes.get(actorRef);
@@ -78,7 +81,10 @@ public class ActorSystem implements ActorCreator {
         if (actor == null)
             throw new ActorIsTerminatedException();
 
+        getEventBus().unsubscribe(actorRef);
+        actorRef.setTerminated();
         actors.remove(actorRef.getPath());
+        Log.d(LOG_TAG, "Terminated: " + actorRef.getName());
     }
 
     public ActorRef actorSelection(String path) {
@@ -147,7 +153,11 @@ public class ActorSystem implements ActorCreator {
     }
 
     public AbstractActor getActor(ActorRef ref) {
-        return actors.get(ref.getPath());
+        AbstractActor actor = actors.get(ref.getPath());
+        if (actor == null)
+            throw new ActorIsTerminatedException();
+
+        return actor;
     }
 
     @Override
