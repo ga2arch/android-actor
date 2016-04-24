@@ -25,6 +25,11 @@ public final class Props {
         return new Props(clazz, args);
     }
 
+    public static Props create(AppCompatActivity activity,
+                               Class<?> activityClazz) {
+        return new Props(activity, activityClazz);
+    }
+
     public static Props create(Activity activity) {
         return new Props(activity);
     }
@@ -50,6 +55,16 @@ public final class Props {
         this.actorClazz = ActivityActor.class;
         this.args = new Object[]{activity};
         this.clazzs.add(Activity.class);
+    }
+
+    private Props(AppCompatActivity activity, Class<?> activityClazz) {
+        if (!(activity instanceof WithReceive))
+            throw new RuntimeException("AppCompatActivity doesn't implement ActorInterface");
+
+        this.actorClazz = ActivityActor.class;
+        this.args = new Object[]{activity, activityClazz};
+        this.clazzs.add(AppCompatActivity.class);
+        this.clazzs.add(Class.class);
     }
 
     private Props(AppCompatActivity activity) {

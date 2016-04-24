@@ -17,16 +17,27 @@ public class ActorContext implements ActorCreator {
     private ActorRef sender;
     private ActorRef parent;
     private ActorRef self;
+    private final String path;
+    private final String name;
     private ActorMessage currentMessage;
     private AbstractDispatcher dispatcher;
     private final ArrayList<ActorMessage> stash = new ArrayList<>();
     private final Deque<OnReceiveFunction> stack = new ArrayDeque<>();
 
-    public ActorContext(ActorSystem system, ActorRef parent, ActorRef self, AbstractDispatcher dispatcher) {
+    public ActorContext(ActorSystem system,
+                        ActorRef parent,
+                        ActorRef self,
+                        AbstractDispatcher dispatcher,
+                        String name) {
         this.system = system;
         this.parent = parent;
         this.self = self;
         this.dispatcher = dispatcher;
+        this.name = name;
+        if (parent != null)
+            this.path = String.format("%s/%s", parent.get().getActorContext().getPath(), name);
+        else
+            this.path = "//" + name;
     }
 
     public void become(OnReceiveFunction function) {
@@ -106,7 +117,13 @@ public class ActorContext implements ActorCreator {
         this.parent = parent;
     }
 
+    public String getPath() {
+        return path;
+    }
 
+    public String getName() {
+        return name;
+    }
 
     public ActorMessage getCurrentMessage() {
         return currentMessage;
@@ -118,7 +135,17 @@ public class ActorContext implements ActorCreator {
     }
 
     @Override
+    public ActorRef actorOf(Props props, String name) {
+        return getSystem().actorOf(parent, props, name);
+    }
+
+    @Override
     public ActorRef actorOf(Props props, Probe probe) {
         return getSystem().actorOf(getSelf(), props, probe);
+    }
+
+    @Override
+    public ActorRef actorOf(Props props, String name, Probe probe) {
+        return getSystem().actorOf(parent, props, name, probe);
     }
 }

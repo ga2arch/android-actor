@@ -34,7 +34,7 @@ public abstract class AbstractActor implements WithReceive {
     /**
      * Executed in the dispatcher
      */
-    public void afterStop() {
+    public void postStop() {
 
     }
 
@@ -47,6 +47,8 @@ public abstract class AbstractActor implements WithReceive {
         Iterator<ActorMessage> it = getMailbox().iterator();
         while (it.hasNext() && !isTerminated()) {
             ActorMessage message = it.next();
+            it.remove();
+
             ActorContext context = getActorContext();
             context.setSender(message.getSender());
             context.setCurrentMessage(message);
@@ -70,9 +72,6 @@ public abstract class AbstractActor implements WithReceive {
             } catch (Exception e) {
                 restart();
                 throw e;
-
-            } finally {
-                it.remove();
             }
         }
     }
@@ -82,7 +81,7 @@ public abstract class AbstractActor implements WithReceive {
     }
 
     private void terminate() {
-        afterStop();
+        postStop();
         getEventBus().unsubscribe(getSelf());
         getMailbox().clear();
         setTerminated();

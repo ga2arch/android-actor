@@ -4,12 +4,13 @@ import android.util.Log;
 
 import com.gabriele.actor.exceptions.ActorIsTerminatedException;
 
+import java.util.Collections;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractDispatcher {
@@ -17,7 +18,7 @@ public abstract class AbstractDispatcher {
 
     private ActorSystem system;
     private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    private final ConcurrentHashMap<ActorRef, Semaphore> running = new ConcurrentHashMap<>();
+    private final Set<ActorRef> running = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
 
     protected abstract ExecutorService getExecutorService();
 
@@ -27,10 +28,8 @@ public abstract class AbstractDispatcher {
         try {
             final AbstractActor actor = actorRef.get();
             synchronized (running) {
-                running.putIfAbsent(actorRef, new Semaphore(1));
-                final Semaphore semaphore = running.get(actorRef);
-                if (semaphore.availablePermits() == 0) return;
-                semaphore.tryAcquire();
+                if (running.contains(actorRef)) return;
+                running.add(actorRef);
 
                 getExecutorService().execute(new Runnable() {
                     @Override
@@ -46,7 +45,6 @@ public abstract class AbstractDispatcher {
 
                         } finally {
                             synchronized (running) {
-                                semaphore.release();
                                 if (!actor.isTerminated() && actor.getMailbox().size() > 0) {
                                     running.remove(actorRef);
                                     dispatch(actorRef);

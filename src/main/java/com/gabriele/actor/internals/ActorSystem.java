@@ -5,13 +5,14 @@ import android.os.PowerManager;
 import android.util.Log;
 
 import com.gabriele.actor.eventbus.EventBus;
+import com.gabriele.actor.exceptions.ActorIsTerminatedException;
 import com.gabriele.actor.interfaces.ActorCreator;
 import com.gabriele.actor.testing.Probe;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.Set;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -21,8 +22,8 @@ public class ActorSystem implements ActorCreator {
 
     private final Context context;
     private final EventBus eventBus;
-    private final Set<AbstractActor> actors = Collections.newSetFromMap(new ConcurrentHashMap<AbstractActor, Boolean>());
-    private final ConcurrentHashMap<ActorRef, Probe> probes = new ConcurrentHashMap<>();
+    private final Map<String, AbstractActor> actors = new ConcurrentHashMap<>();
+    private final Map<ActorRef, Probe> probes = new ConcurrentHashMap<>();
     private final PowerManager.WakeLock wakeLock;
 
     public ActorSystem(Context context) {
@@ -34,19 +35,19 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void terminate() {
-        for (AbstractActor actor: actors) {
+        for (AbstractActor actor: actors.values()) {
             actor.getSelf().tell(new ActorMessage.PoisonPill(), ActorRef.noSender());
         }
     }
 
-    public void acquireWakeLock() {
+    public synchronized void acquireWakeLock() {
         if (!wakeLock.isHeld()) {
             wakeLock.acquire(TimeUnit.MINUTES.toMillis(5));
             Log.d(LOG_TAG, "Wakelock acquired");
         }
     }
 
-    public void releaseWakeLock() {
+    public synchronized void releaseWakeLock() {
         if (wakeLock.isHeld()) {
             wakeLock.release();
             Log.d(LOG_TAG, "Wakelock released");
@@ -56,12 +57,15 @@ public class ActorSystem implements ActorCreator {
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
         AbstractActor actor = actorRef.get();
         actor.getMailbox().add(new ActorMessage(message, sender));
-        Probe probe = probes.get(actorRef);
-        if (probe != null) {
-            probe.setMessage(message);
-            probe.setSender(sender);
+        synchronized (probes) {
+            Probe probe = probes.get(actorRef);
+            if (probe != null) {
+                probe.setMessage(message);
+                probe.setSender(sender);
+            }
+            if (probe != null && !probe.toPropagate())
+                return;
         }
-        if (probe != null && !probe.toPropagate()) return;
         actor.getActorContext().getDispatcher().dispatch(actorRef);
     }
 
@@ -70,11 +74,26 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void terminateActor(AbstractActor actor) {
-        actors.remove(actor);
+        if (actor == null)
+            throw new ActorIsTerminatedException();
+
+        actors.remove(actor.getActorContext().getPath());
         actor.getSelf().clear();
     }
 
+    public ActorRef actorSelection(String path) {
+        AbstractActor actor = actors.get(path);
+        if (actor != null)
+            return actor.getSelf();
+        else
+            return null;
+    }
+
     public ActorRef actorOf(ActorRef parent, Props props) {
+        return actorOf(parent, props, UUID.randomUUID().toString());
+    }
+
+    public ActorRef actorOf(ActorRef parent, Props props, String name) {
         try {
             Constructor<?> constructor = props.getActorClazz().getConstructor(props.getClazzs());
             AbstractActor actor = (AbstractActor) constructor.newInstance(props.getArgs());
@@ -84,9 +103,10 @@ public class ActorSystem implements ActorCreator {
             ActorRef self = new ActorRef(actor);
             self.setSystem(this);
             dispatcher.setSystem(this);
-            actors.add(actor);
 
-            ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
+            ActorContext actorContext = new ActorContext(this, parent, self, dispatcher, name);
+            actors.put(actorContext.getPath(), actor);
+
             actor.setActorContext(actorContext);
             actor.onCreate();
             dispatcher.dispatch(self);
@@ -106,16 +126,18 @@ public class ActorSystem implements ActorCreator {
         return null;
     }
 
-
-
     public Context getContext() {
         return context;
     }
 
-    public ActorRef actorOf(ActorRef parent, Props props, Probe probe) {
-        ActorRef ref = actorOf(parent, props);
+    public ActorRef actorOf(ActorRef parent, Props props, String name, Probe probe) {
+        ActorRef ref = actorOf(parent, props, name);
         probes.put(ref, probe);
         return ref;
+    }
+
+    public ActorRef actorOf(ActorRef parent, Props props, Probe probe) {
+        return actorOf(parent, props, UUID.randomUUID().toString(), probe);
     }
 
     @Override
@@ -124,9 +146,19 @@ public class ActorSystem implements ActorCreator {
     }
 
     @Override
+    public ActorRef actorOf(Props props, String name) {
+        return actorOf(null, props, name);
+    }
+
+    @Override
     public ActorRef actorOf(Props props, Probe probe) {
         ActorRef ref = actorOf(props);
         probes.put(ref, probe);
         return ref;
+    }
+
+    @Override
+    public ActorRef actorOf(Props props, String name, Probe probe) {
+        return null;
     }
 }
