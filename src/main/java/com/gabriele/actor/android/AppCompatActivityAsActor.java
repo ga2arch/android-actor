@@ -25,13 +25,16 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
         String path = getIntent().getStringExtra(ActivityActor.EXTRA_PATH);
         if (path != null) {
             ref = system.actorSelection(path);
+
         } else {
             ref = system.actorOf(Props.create(this).withDispatcher(MainThreadDispatcher.getInstance()));
         }
 
         if (ref != null) {
-            getSelf().tell(
-                    new ActivityActor.ActivityCreatedMessage(this), getSelf());
+            getSelf().tell(new ActivityActor.ActivityCreatedMessage(this), getSelf());
+
+        } else {
+            throw new RuntimeException("Actor not created!!");
         }
     }
 
@@ -50,7 +53,7 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        system.terminateActor(getSelf());
+        getSelf().tell(new ActivityActor.ActivityDestroyedMessage(), getSelf());
     }
 
     protected ActorRef getSelf() {
