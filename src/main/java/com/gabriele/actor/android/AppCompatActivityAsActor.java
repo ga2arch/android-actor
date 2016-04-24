@@ -51,7 +51,7 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        system.terminateActor(getSelf().get());
+        system.terminateActor(getSelf());
     }
 
     protected ActorRef getSelf() {
@@ -59,7 +59,7 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
     }
 
     protected ActorContext getActorContext() {
-        AbstractActor actor = ref.get();
+        AbstractActor actor = system.getActor(getSelf());
         if (actor != null)
             return actor.getActorContext();
         else

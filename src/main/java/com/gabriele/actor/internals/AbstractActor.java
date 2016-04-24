@@ -88,7 +88,7 @@ public abstract class AbstractActor implements WithReceive {
         if (getActorContext().getParent() != null) {
             getActorContext().getParent().tell(new ActorMessage.Terminated(), getSelf());
         }
-        getSystem().terminateActor(this);
+        getSystem().terminateActor(getSelf());
     }
 
     private void restart() {

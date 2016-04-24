@@ -32,7 +32,7 @@ public class ActivityActor extends AbstractActor {
     public void onCreate() {
         getActorContext().setDispatcher(MainThreadDispatcher.getInstance());
         if (intent != null) {
-            intent.putExtra(EXTRA_PATH, getActorContext().getPath());
+            intent.putExtra(EXTRA_PATH, getSelf().getPath());
             AppCompatActivity activity = currentActivity.get();
             if (activity != null)
                 activity.startActivity(intent);

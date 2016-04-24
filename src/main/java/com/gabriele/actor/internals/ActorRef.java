@@ -1,17 +1,14 @@
 package com.gabriele.actor.internals;
 
-import com.gabriele.actor.exceptions.ActorIsTerminatedException;
+public class ActorRef {
 
-import java.lang.ref.WeakReference;
-
-public class ActorRef extends WeakReference<AbstractActor> {
-
-    private int hashCode;
     private ActorSystem system;
+    private final String path;
+    private final String name;
 
-    public ActorRef(AbstractActor actor) {
-        super(actor);
-        hashCode = actor.hashCode();
+    public ActorRef(String path, String name) {
+        this.path = path;
+        this.name = name;
     }
 
     public void setSystem(ActorSystem system) {
@@ -26,21 +23,11 @@ public class ActorRef extends WeakReference<AbstractActor> {
         return null;
     }
 
-    @Override
-    public AbstractActor get() {
-        if (super.get() == null)
-            throw new ActorIsTerminatedException();
-
-        return super.get();
+    public String getPath() {
+        return path;
     }
 
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other.hashCode() == hashCode;
+    public String getName() {
+        return name;
     }
 }

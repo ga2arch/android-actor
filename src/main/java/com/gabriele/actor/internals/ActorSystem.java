@@ -55,7 +55,7 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
-        AbstractActor actor = actorRef.get();
+        AbstractActor actor = actors.get(actorRef.getPath());
         actor.getMailbox().add(new ActorMessage(message, sender));
         synchronized (probes) {
             Probe probe = probes.get(actorRef);
@@ -73,12 +73,12 @@ public class ActorSystem implements ActorCreator {
         return eventBus;
     }
 
-    public void terminateActor(AbstractActor actor) {
+    public void terminateActor(ActorRef actorRef) {
+        AbstractActor actor = actors.get(actorRef.getPath());
         if (actor == null)
             throw new ActorIsTerminatedException();
 
-        actors.remove(actor.getActorContext().getPath());
-        actor.getSelf().clear();
+        actors.remove(actorRef.getPath());
     }
 
     public ActorRef actorSelection(String path) {
@@ -100,12 +100,18 @@ public class ActorSystem implements ActorCreator {
             AbstractDispatcher dispatcher = props.getDispatcher();
             actor.setMailbox(dispatcher.getMailbox());
 
-            ActorRef self = new ActorRef(actor);
+            String path;
+            if (parent != null)
+                path = String.format("%s/%s", parent.getPath(), name);
+            else
+                path = "//" + name;
+
+            ActorRef self = new ActorRef(path, name);
             self.setSystem(this);
             dispatcher.setSystem(this);
 
-            ActorContext actorContext = new ActorContext(this, parent, self, dispatcher, name);
-            actors.put(actorContext.getPath(), actor);
+            ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
+            actors.put(self.getPath(), actor);
 
             actor.setActorContext(actorContext);
             actor.onCreate();
@@ -138,6 +144,10 @@ public class ActorSystem implements ActorCreator {
 
     public ActorRef actorOf(ActorRef parent, Props props, Probe probe) {
         return actorOf(parent, props, UUID.randomUUID().toString(), probe);
+    }
+
+    public AbstractActor getActor(ActorRef ref) {
+        return actors.get(ref.getPath());
     }
 
     @Override

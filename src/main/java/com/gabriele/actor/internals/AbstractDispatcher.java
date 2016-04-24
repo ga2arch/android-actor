@@ -26,7 +26,7 @@ public abstract class AbstractDispatcher {
 
     public void dispatch(final ActorRef actorRef) {
         try {
-            final AbstractActor actor = actorRef.get();
+            final AbstractActor actor = getSystem().getActor(actorRef);
             synchronized (running) {
                 if (running.contains(actorRef)) return;
                 running.add(actorRef);

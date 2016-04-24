@@ -8,11 +8,11 @@ public class Logger {
     private String path;
 
     public static Logger create(ActorRef ref) {
-        return new Logger(ref.get().getActorContext().getPath());
+        return new Logger(ref.getPath());
     }
 
     public static Logger create(AbstractActor ref) {
-        return new Logger(ref.getActorContext().getPath());
+        return new Logger(ref.getSelf().getPath());
     }
 
     private Logger(String path) {

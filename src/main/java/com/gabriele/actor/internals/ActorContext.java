@@ -17,8 +17,6 @@ public class ActorContext implements ActorCreator {
     private ActorRef sender;
     private ActorRef parent;
     private ActorRef self;
-    private final String path;
-    private final String name;
     private ActorMessage currentMessage;
     private AbstractDispatcher dispatcher;
     private final ArrayList<ActorMessage> stash = new ArrayList<>();
@@ -27,17 +25,12 @@ public class ActorContext implements ActorCreator {
     public ActorContext(ActorSystem system,
                         ActorRef parent,
                         ActorRef self,
-                        AbstractDispatcher dispatcher,
-                        String name) {
+                        AbstractDispatcher dispatcher) {
         this.system = system;
         this.parent = parent;
         this.self = self;
         this.dispatcher = dispatcher;
-        this.name = name;
-        if (parent != null)
-            this.path = String.format("%s/%s", parent.get().getActorContext().getPath(), name);
-        else
-            this.path = "//" + name;
+
     }
 
     public void become(OnReceiveFunction function) {
@@ -115,14 +108,6 @@ public class ActorContext implements ActorCreator {
 
     public void setParent(ActorRef parent) {
         this.parent = parent;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public ActorMessage getCurrentMessage() {
