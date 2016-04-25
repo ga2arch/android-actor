@@ -74,7 +74,6 @@ public abstract class AbstractActor implements WithReceive {
                 getSelf().tell(e, ActorRef.noSender());
 
             } catch (Exception e) {
-                restart();
                 throw e;
             }
         }

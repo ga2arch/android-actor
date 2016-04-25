@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 
 import com.gabriele.actor.android.ActivityActor;
+import com.gabriele.actor.android.FragmentActor;
+import com.gabriele.actor.android.FragmentAsActor;
 import com.gabriele.actor.dispatchers.ForkJoinDispatcher;
 import com.gabriele.actor.interfaces.WithReceive;
 
@@ -25,9 +27,12 @@ public final class Props {
         return new Props(clazz, args);
     }
 
-    public static Props create(AppCompatActivity activity,
-                               Class<?> activityClazz) {
+    public static Props create(AppCompatActivity activity, Class<?> activityClazz) {
         return new Props(activity, activityClazz);
+    }
+
+    public static Props create(FragmentAsActor fragment) {
+        return new Props(fragment);
     }
 
     public static Props create(Activity activity) {
@@ -50,16 +55,22 @@ public final class Props {
 
     private Props(Activity activity) {
         if (!(activity instanceof WithReceive))
-            throw new RuntimeException("Activity doesn't implement ActorInterface");
+            throw new RuntimeException("Activity doesn't implement WithReceive");
 
         this.actorClazz = ActivityActor.class;
         this.args = new Object[]{activity};
         this.clazzs.add(Activity.class);
     }
 
+    private Props(FragmentAsActor fragment) {
+        this.actorClazz = FragmentActor.class;
+        this.args = new Object[]{fragment};
+        this.clazzs.add(FragmentAsActor.class);
+    }
+
     private Props(AppCompatActivity activity, Class<?> activityClazz) {
         if (!(activity instanceof WithReceive))
-            throw new RuntimeException("AppCompatActivity doesn't implement ActorInterface");
+            throw new RuntimeException("AppCompatActivity doesn't implement WithReceive");
 
         this.actorClazz = ActivityActor.class;
         this.args = new Object[]{activity, activityClazz};
