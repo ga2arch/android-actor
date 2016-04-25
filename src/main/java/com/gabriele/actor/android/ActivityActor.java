@@ -55,7 +55,6 @@ public class ActivityActor extends AbstractActor {
             delegate = ((ActivityCreatedMessage) o).ref;
             if (destroyFuture != null) {
                 destroyFuture.cancel(true);
-                getSelf().tell(initMessage.getObject(), initMessage.getSender());
             }
             become(ready);
             unstashAll();
@@ -71,10 +70,7 @@ public class ActivityActor extends AbstractActor {
             if (o instanceof ActivityPausedMessage) {
                 become(paused);
 
-            } else {
-                if (initMessage == null && !(o instanceof ActivityResumedMessage))
-                    initMessage = getActorContext().getCurrentMessage();
-
+            } else if (!(o instanceof Internal)){
                 delegate.get().onReceive(o);
             }
         }
@@ -88,6 +84,7 @@ public class ActivityActor extends AbstractActor {
                 unstashAll();
 
             } else if (o instanceof ActivityDestroyedMessage) {
+                if (destroyFuture != null) destroyFuture.cancel(true);
                 destroyFuture = service.schedule(new Runnable() {
                     @Override
                     public void run() {
@@ -106,23 +103,20 @@ public class ActivityActor extends AbstractActor {
         }
     };
 
-    public static class ActivityCreatedMessage {
-        WeakReference<WithReceive> ref;
+    public static class ActivityCreatedMessage implements Internal {
+        private WeakReference<WithReceive> ref;
 
         public ActivityCreatedMessage(WithReceive ref) {
             this.ref = new WeakReference<>(ref);
         }
+
+        public WeakReference<WithReceive> getRef() {
+            return ref;
+        }
     }
+    public static class ActivityPausedMessage implements Internal {}
+    public static class ActivityResumedMessage implements Internal {}
+    public static class ActivityDestroyedMessage implements Internal {}
 
-    public static class ActivityPausedMessage {
-
-    }
-
-    public static class ActivityResumedMessage {
-
-    }
-
-    public static class ActivityDestroyedMessage {
-
-    }
+    private interface Internal {}
 }

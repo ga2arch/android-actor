@@ -27,7 +27,7 @@ public abstract class AbstractDispatcher {
     public void dispatch(final ActorRef actorRef) {
         try {
             final AbstractActor actor = getSystem().getActor(actorRef);
-            synchronized (actor) {
+            synchronized (running) {
                 if (running.contains(actorRef)) return;
                 running.add(actorRef);
 
@@ -44,7 +44,7 @@ public abstract class AbstractDispatcher {
                             Log.e(LOG_TAG, e.getMessage(), e);
 
                         } finally {
-                            synchronized (actor) {
+                            synchronized (running) {
                                 if (!actor.isTerminated() && actor.getMailbox().size() > 0) {
                                     running.remove(actorRef);
                                     dispatch(actorRef);

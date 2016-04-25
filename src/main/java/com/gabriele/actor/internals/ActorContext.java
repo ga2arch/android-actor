@@ -121,7 +121,7 @@ public class ActorContext implements ActorCreator {
 
     @Override
     public ActorRef actorOf(Props props, String name) {
-        return getSystem().actorOf(parent, props, name);
+        return getSystem().actorOf(getSelf(), props, name);
     }
 
     @Override
@@ -131,6 +131,6 @@ public class ActorContext implements ActorCreator {
 
     @Override
     public ActorRef actorOf(Props props, String name, Probe probe) {
-        return getSystem().actorOf(parent, props, name, probe);
+        return getSystem().actorOf(getSelf(), props, name, probe);
     }
 }
