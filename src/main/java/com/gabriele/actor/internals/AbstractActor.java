@@ -68,6 +68,12 @@ public abstract class AbstractActor implements WithReceive {
 
                 if (message.getObject() instanceof ActorMessage.PoisonPill) {
                     terminate();
+
+                } else if (message.getObject() instanceof ActorMessage.Terminated) {
+                    getActorContext().removeChild(getSender());
+
+                } else if (message.getObject() instanceof ActorMessage.AddChild) {
+                    getActorContext().addChild(getSender());
                 }
 
             } catch (SecurityException e) {

@@ -117,8 +117,7 @@ public class ActorSystem implements ActorCreator {
             dispatcher.setSystem(this);
 
             if (parent != null) {
-                AbstractActor parentActor = getActor(parent);
-                parentActor.getActorContext().addChild(self);
+                parent.tell(new ActorMessage.AddChild(), self);
             }
 
             ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);

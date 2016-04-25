@@ -7,17 +7,12 @@ import com.gabriele.actor.interfaces.OnReceiveFunction;
 import com.gabriele.actor.internals.AbstractActor;
 
 import java.lang.ref.WeakReference;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 public class FragmentActor extends AbstractActor {
 
     public static final String EXTRA_PATH = "PATH";
 
-    private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     private WeakReference<FragmentAsActor> delegate;
-    private ScheduledFuture destroyFuture;
 
     public FragmentActor(FragmentAsActor delegate) {
         this.delegate = new WeakReference<>(delegate);

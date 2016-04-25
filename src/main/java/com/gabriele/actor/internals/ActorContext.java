@@ -125,7 +125,9 @@ public class ActorContext implements ActorCreator {
         return Collections.unmodifiableList(children);
     }
 
-    //TODO child remove
+    public void removeChild(ActorRef ref) {
+        children.remove(ref);
+    }
 
     @Override
     public ActorRef actorOf(Props props) {

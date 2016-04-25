@@ -17,11 +17,7 @@ public class ActorMessage {
         return sender;
     }
 
-    public static class PoisonPill {
-
-    }
-
-    public static class Terminated {
-
-    }
+    public static class PoisonPill {}
+    public static class Terminated {}
+    public static class AddChild {}
 }
