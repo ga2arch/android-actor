@@ -10,7 +10,6 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class FragmentActor extends AbstractActor {
 
@@ -36,9 +35,6 @@ public class FragmentActor extends AbstractActor {
     public void onReceive(Object o) throws Exception {
         if (o instanceof FragmentCreatedMessage) {
             delegate = ((FragmentCreatedMessage) o).getRef();
-            if (destroyFuture != null) {
-                destroyFuture.cancel(true);
-            }
             become(ready);
             unstashAll();
 
@@ -65,15 +61,6 @@ public class FragmentActor extends AbstractActor {
             if (o instanceof FragmentResumedMessage) {
                 unbecome();
                 unstashAll();
-
-            } else if (o instanceof FragmentDetachedMessage) {
-                if (destroyFuture != null) destroyFuture.cancel(true);
-                destroyFuture = service.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        stopSelf();
-                    }
-                }, 1, TimeUnit.SECONDS);
 
             } else if (o instanceof FragmentCreatedMessage) {
                 unbecome();

@@ -116,6 +116,11 @@ public class ActorSystem implements ActorCreator {
             self.setSystem(this);
             dispatcher.setSystem(this);
 
+            if (parent != null) {
+                AbstractActor parentActor = getActor(parent);
+                parentActor.getActorContext().addChild(self);
+            }
+
             ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
             actors.put(self.getPath(), actor);
 

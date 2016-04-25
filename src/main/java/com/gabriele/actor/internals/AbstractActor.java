@@ -84,14 +84,20 @@ public abstract class AbstractActor implements WithReceive {
     }
 
     private void terminate() {
-        postStop();
-        getEventBus().unsubscribe(getSelf());
-        getMailbox().clear();
-        setTerminated();
-        if (getActorContext().getParent() != null && !getActorContext().getParent().isTerminated()) {
-            getActorContext().getParent().tell(new ActorMessage.Terminated(), getSelf());
+        try {
+            postStop();
+            getEventBus().unsubscribe(getSelf());
+            getMailbox().clear();
+            setTerminated();
+            if (getActorContext().getParent() != null && !getActorContext().getParent().isTerminated()) {
+                getActorContext().getParent().tell(new ActorMessage.Terminated(), getSelf());
+            }
+            for (ActorRef child : getActorContext().getChildren())
+                child.tell(new ActorMessage.PoisonPill(), getSelf());
+
+        } finally {
+            getSystem().terminateActor(getSelf());
         }
-        getSystem().terminateActor(getSelf());
     }
 
     private void restart() {

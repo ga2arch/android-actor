@@ -45,6 +45,12 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
     }
 
     @Override
+    public Object onRetainCustomNonConfigurationInstance() {
+        getSelf().tell(new ActivityActor.ActivityConfigChangedMessage(), getSelf());
+        return super.onRetainCustomNonConfigurationInstance();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         getSelf().tell(new ActivityActor.ActivityResumedMessage(), getSelf());

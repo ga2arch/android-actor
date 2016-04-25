@@ -8,14 +8,17 @@ import com.gabriele.actor.testing.Probe;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.List;
 
 public class ActorContext implements ActorCreator {
 
     private ActorSystem system;
     private ActorRef sender;
     private ActorRef parent;
+    private final List<ActorRef> children = new ArrayList<>();
     private ActorRef self;
     private ActorMessage currentMessage;
     private AbstractDispatcher dispatcher;
@@ -113,6 +116,16 @@ public class ActorContext implements ActorCreator {
     public ActorMessage getCurrentMessage() {
         return currentMessage;
     }
+
+    public void addChild(ActorRef ref) {
+        children.add(ref);
+    }
+
+    public List<ActorRef> getChildren() {
+        return Collections.unmodifiableList(children);
+    }
+
+    //TODO child remove
 
     @Override
     public ActorRef actorOf(Props props) {
