@@ -10,15 +10,16 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 public class ActorContext implements ActorCreator {
 
     private ActorSystem system;
     private ActorRef sender;
     private ActorRef parent;
-    private final List<ActorRef> children = new ArrayList<>();
+    private final Set<ActorRef> children = new HashSet<>();
     private ActorRef self;
     private ActorMessage currentMessage;
     private AbstractDispatcher dispatcher;
@@ -121,8 +122,8 @@ public class ActorContext implements ActorCreator {
         children.add(ref);
     }
 
-    public List<ActorRef> getChildren() {
-        return Collections.unmodifiableList(children);
+    public Set<ActorRef> getChildren() {
+        return Collections.unmodifiableSet(children);
     }
 
     public void removeChild(ActorRef ref) {

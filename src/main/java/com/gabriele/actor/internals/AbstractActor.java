@@ -66,6 +66,13 @@ public abstract class AbstractActor implements WithReceive {
                     stack.getFirst().onReceive(message.getObject());
                 }
 
+            } catch (SecurityException e) {
+                getSelf().tell(e, ActorRef.noSender());
+
+            } catch (Exception e) {
+                throw e;
+
+            } finally {
                 if (message.getObject() instanceof ActorMessage.PoisonPill) {
                     terminate();
 
@@ -75,12 +82,6 @@ public abstract class AbstractActor implements WithReceive {
                 } else if (message.getObject() instanceof ActorMessage.AddChild) {
                     getActorContext().addChild(getSender());
                 }
-
-            } catch (SecurityException e) {
-                getSelf().tell(e, ActorRef.noSender());
-
-            } catch (Exception e) {
-                throw e;
             }
         }
     }
