@@ -4,7 +4,9 @@ import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
 import com.gabriele.actor.internals.Props;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 public class EventBus {
 
@@ -65,7 +67,7 @@ public class EventBus {
         eventBusRef.tell(new EventBus.UnregisterPublisherMessage(clazz, ref), ref);
     }
 
-    public static class SubscribeMessage {
+    public static final class SubscribeMessage {
         boolean silent;
         Class<?> event;
         ActorRef ref;
@@ -167,14 +169,14 @@ public class EventBus {
     }
 
     public static class SubscriptionsMessage {
-        HashSet<Class<?>> subs;
+        Set<Class<?>> subs;
 
-        public SubscriptionsMessage(HashSet<Class<?>> subs) {
-            this.subs = subs;
+        public SubscriptionsMessage(Set<Class<?>> subs) {
+            this.subs = new HashSet<>(subs);
         }
 
-        public HashSet<Class<?>> getSubs() {
-            return subs;
+        public Set<Class<?>> getSubs() {
+            return Collections.unmodifiableSet(subs);
         }
     }
 
