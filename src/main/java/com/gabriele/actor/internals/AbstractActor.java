@@ -90,7 +90,7 @@ public abstract class AbstractActor implements WithReceive {
         getSystem().publish(getSelf(), new ActorMessage.PoisonPill(), getSelf());
     }
 
-    private void terminate() {
+    void terminate() {
         try {
             postStop();
             getEventBus().unsubscribe(getSelf());

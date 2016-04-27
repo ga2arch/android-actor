@@ -42,6 +42,7 @@ public abstract class AbstractDispatcher {
 
                         } catch (Exception e) {
                             Log.e(LOG_TAG, e.getMessage(), e);
+                            actor.terminate();
 
                         } finally {
                             synchronized (actor) {
