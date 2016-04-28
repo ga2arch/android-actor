@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractDispatcher {
     private static final String LOG_TAG = "Dispatcher";
 
-    private ActorSystem system;
     private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     private final Set<ActorRef> running = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
 
@@ -24,9 +23,9 @@ public abstract class AbstractDispatcher {
 
     public abstract Queue<ActorMessage> getMailbox();
 
-    public void dispatch(final ActorRef actorRef) {
+    public void dispatch(final ActorSystem system, final ActorRef actorRef) {
         try {
-            final AbstractActor actor = getSystem().getActor(actorRef);
+            final AbstractActor actor = system.getActor(actorRef);
             synchronized (actor) {
                 if (running.contains(actorRef)) return;
                 running.add(actorRef);
@@ -48,7 +47,7 @@ public abstract class AbstractDispatcher {
                             synchronized (actor) {
                                 if (!actor.isTerminated() && actor.getMailbox().size() > 0) {
                                     running.remove(actorRef);
-                                    dispatch(actorRef);
+                                    dispatch(system, actorRef);
                                 } else {
                                     running.remove(actorRef);
                                     // Release global wakelock is there are no running actor in 10 seconds.
@@ -57,7 +56,7 @@ public abstract class AbstractDispatcher {
                                             @Override
                                             public void run() {
                                                 if (running.isEmpty())
-                                                    getSystem().releaseWakeLock();
+                                                    system.releaseWakeLock();
                                             }
                                         }, 10, TimeUnit.SECONDS);
                                 }
@@ -71,11 +70,4 @@ public abstract class AbstractDispatcher {
         }
     }
 
-    public ActorSystem getSystem() {
-        return system;
-    }
-
-    public void setSystem(ActorSystem system) {
-        this.system = system;
-    }
 }

@@ -55,7 +55,7 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
-        AbstractActor actor = actors.get(actorRef.getPath());
+        AbstractActor actor = getActor(actorRef);
         if (actor == null)
             throw new ActorIsTerminatedException();
 
@@ -69,7 +69,7 @@ public class ActorSystem implements ActorCreator {
             if (probe != null && !probe.toPropagate())
                 return;
         }
-        actor.getActorContext().getDispatcher().dispatch(actorRef);
+        actor.getActorContext().getDispatcher().dispatch(this, actorRef);
     }
 
     public EventBus getEventBus() {
@@ -114,7 +114,6 @@ public class ActorSystem implements ActorCreator {
 
             ActorRef self = new ActorRef(path, name);
             self.setSystem(this);
-            dispatcher.setSystem(this);
 
             if (parent != null) {
                 parent.tell(new ActorMessage.AddChild(), self);
@@ -125,7 +124,7 @@ public class ActorSystem implements ActorCreator {
 
             actor.setActorContext(actorContext);
             actor.onCreate();
-            dispatcher.dispatch(self);
+            dispatcher.dispatch(this, self);
             return self;
 
         } catch (NoSuchMethodException e) {
