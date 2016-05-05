@@ -43,4 +43,14 @@ public class ActorRef {
     public boolean isTerminated() {
         return isTerminated;
     }
+
+    @Override
+    public String toString() {
+        return "ActorRef{" +
+                "system=" + system +
+                ", path='" + path + '\'' +
+                ", name='" + name + '\'' +
+                ", isTerminated=" + isTerminated +
+                '}';
+    }
 }

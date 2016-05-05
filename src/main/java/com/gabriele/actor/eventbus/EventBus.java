@@ -15,7 +15,7 @@ public class EventBus {
 
     public EventBus(ActorSystem system) {
         this.system = system;
-        eventBusRef = system.actorOf(Props.create(EventBusActor.class));
+        eventBusRef = system.actorOf(Props.create(EventBusActor.class), "EVENTBUS");
     }
 
     public void subscribe(Class clazz, ActorRef ref) {

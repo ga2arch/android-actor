@@ -17,7 +17,9 @@ public class ActorMessage {
         return sender;
     }
 
-    public static class PoisonPill {}
-    public static class Terminated {}
-    public static class AddChild {}
+    public static class PoisonPill implements ControlMessage {}
+    public static class Terminated implements ControlMessage {}
+    public static class AddChild implements ControlMessage {}
+
+    public interface ControlMessage {}
 }

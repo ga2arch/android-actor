@@ -1,6 +1,7 @@
 package com.gabriele.actor.internals;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.gabriele.actor.eventbus.EventBus;
 import com.gabriele.actor.exceptions.ActorIsTerminatedException;
@@ -87,7 +88,7 @@ public abstract class AbstractActor implements WithReceive {
     }
 
     protected void stopSelf() {
-        getSystem().publish(getSelf(), new ActorMessage.PoisonPill(), getSelf());
+        getSelf().tell(new ActorMessage.PoisonPill(), getSelf());
     }
 
     void terminate() {
@@ -99,6 +100,7 @@ public abstract class AbstractActor implements WithReceive {
             if (getActorContext().getParent() != null && !getActorContext().getParent().isTerminated()) {
                 getActorContext().getParent().tell(new ActorMessage.Terminated(), getSelf());
             }
+            Log.d("TERMINATE", getActorContext().getChildren().toString());
             for (ActorRef child : getActorContext().getChildren())
                 child.tell(new ActorMessage.PoisonPill(), getSelf());
 

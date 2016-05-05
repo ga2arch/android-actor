@@ -55,9 +55,12 @@ public class ActorSystem implements ActorCreator {
     }
 
     public void publish(ActorRef actorRef, Object message, ActorRef sender) {
+        acquireWakeLock();
         AbstractActor actor = getActor(actorRef);
-        if (actor == null)
+        if (actor == null) {
+            releaseWakeLock();
             throw new ActorIsTerminatedException();
+        }
 
         actor.getMailbox().add(new ActorMessage(message, sender));
         synchronized (probes) {
@@ -120,6 +123,9 @@ public class ActorSystem implements ActorCreator {
             }
 
             ActorContext actorContext = new ActorContext(this, parent, self, dispatcher);
+            if (actors.containsKey(path))
+                throw new RuntimeException("Path already exists !");
+
             actors.put(self.getPath(), actor);
 
             actor.setActorContext(actorContext);

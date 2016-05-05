@@ -10,20 +10,21 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ActorContext implements ActorCreator {
 
     private ActorSystem system;
     private ActorRef sender;
     private ActorRef parent;
-    private final Set<ActorRef> children = new HashSet<>();
+    private final Set<ActorRef> children = Collections.newSetFromMap(new ConcurrentHashMap<ActorRef, Boolean>());
     private ActorRef self;
     private ActorMessage currentMessage;
     private AbstractDispatcher dispatcher;
-    private final ArrayList<ActorMessage> stash = new ArrayList<>();
+    private final List<ActorMessage> stash = new ArrayList<>();
     private final Deque<OnReceiveFunction> stack = new ArrayDeque<>();
 
     public ActorContext(ActorSystem system,
@@ -46,6 +47,8 @@ public class ActorContext implements ActorCreator {
     }
 
     public void stash() {
+        // Don't stash control messages
+        if (currentMessage.getObject() instanceof ActorMessage.ControlMessage) return;
         stash.add(currentMessage);
     }
 
@@ -53,8 +56,8 @@ public class ActorContext implements ActorCreator {
         Iterator<ActorMessage> it = stash.iterator();
         while (it.hasNext()) {
             ActorMessage msg = it.next();
-            getSelf().tell(msg.getObject(), msg.getSender());
             it.remove();
+            getSelf().tell(msg.getObject(), msg.getSender());
         }
     }
 
@@ -102,7 +105,7 @@ public class ActorContext implements ActorCreator {
         return parent;
     }
 
-    public ArrayList<ActorMessage> getStash() {
+    public List<ActorMessage> getStash() {
         return stash;
     }
 
@@ -123,7 +126,7 @@ public class ActorContext implements ActorCreator {
     }
 
     public Set<ActorRef> getChildren() {
-        return Collections.unmodifiableSet(children);
+        return children;
     }
 
     public void removeChild(ActorRef ref) {
