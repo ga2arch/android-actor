@@ -29,13 +29,13 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
         } else if (savedInstanceState != null) {
             ref = system.actorSelection("//" + getClass().getSimpleName());
 
-        } else {
-            ref = system.actorOf(Props.create(this).withDispatcher(MainThreadDispatcher.getInstance()),
-                    getClass().getSimpleName());
         }
 
-        if (ref == null)
-            throw new RuntimeException("Actor not created!!");
+        if (ref == null) {
+            ref = system.actorOf(Props.create(this)
+                    .withDispatcher(MainThreadDispatcher.getInstance()),
+                    getClass().getSimpleName());
+        }
     }
 
     @Override

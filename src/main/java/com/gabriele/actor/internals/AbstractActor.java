@@ -102,7 +102,8 @@ public abstract class AbstractActor implements WithReceive {
             }
             Log.d("TERMINATE", getActorContext().getChildren().toString());
             for (ActorRef child : getActorContext().getChildren())
-                child.tell(new ActorMessage.PoisonPill(), getSelf());
+                if (!child.isTerminated())
+                    child.tell(new ActorMessage.PoisonPill(), getSelf());
 
         } finally {
             getSystem().terminateActor(getSelf());

@@ -7,7 +7,7 @@ public class ActorRef {
     private ActorSystem system;
     private final String path;
     private final String name;
-    private boolean isTerminated;
+    private volatile boolean isTerminated;
 
     public ActorRef(String path, String name) {
         this.path = path;
