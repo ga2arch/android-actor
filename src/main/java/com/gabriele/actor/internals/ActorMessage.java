@@ -20,6 +20,14 @@ public class ActorMessage {
     public static class PoisonPill implements ControlMessage {}
     public static class Terminated implements ControlMessage {}
     public static class AddChild implements ControlMessage {}
+    public static class DeadLetter implements ControlMessage {
+        public final Object messsage;
+        public final ActorRef recipient;
 
+        public DeadLetter(Object messsage, ActorRef recipient) {
+            this.messsage = messsage;
+            this.recipient = recipient;
+        }
+    }
     public interface ControlMessage {}
 }

@@ -1,7 +1,5 @@
 package com.gabriele.actor.internals;
 
-import com.gabriele.actor.exceptions.ActorIsTerminatedException;
-
 public class ActorRef {
 
     private ActorSystem system;
@@ -18,10 +16,20 @@ public class ActorRef {
         this.system = system;
     }
 
-    public void tell(final Object message, final ActorRef sender) {
-        if (isTerminated()) throw new ActorIsTerminatedException();
+    public void tell(final Object message, ActorRef sender) {
+        if (sender == null)
+            sender = system.getDeadLetter();
 
-        system.publish(this, message, sender);
+        if (message instanceof ActorMessage.PoisonPill) {
+            setTerminated();
+            system.publish(this, message, sender);
+            return;
+        }
+
+        if (isTerminated())
+            system.publish(system.getDeadLetter(), new ActorMessage.DeadLetter(message, this), sender);
+        else
+            system.publish(this, message, sender);
     }
 
     public static ActorRef noSender() {

@@ -22,16 +22,21 @@ public class ActorSystem implements ActorCreator {
 
     private final Context context;
     private final EventBus eventBus;
+    private final ActorRef deadLetter;
     private final Map<String, AbstractActor> actors = new ConcurrentHashMap<>();
     private final Map<ActorRef, Probe> probes = new ConcurrentHashMap<>();
-    private final PowerManager.WakeLock wakeLock;
+    private PowerManager.WakeLock wakeLock;
 
     public ActorSystem(Context context) {
         this.context = context;
         this.eventBus = new EventBus(this);
+        this.deadLetter = actorOf(Props.create(DeadLetterActor.class), "DeadLetter");
+
         PowerManager powerManager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActorSystem");
-        wakeLock.setReferenceCounted(false);
+        if (powerManager != null) {
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActorSystem");
+            wakeLock.setReferenceCounted(false);
+        }
     }
 
     public void terminate() {
@@ -41,14 +46,14 @@ public class ActorSystem implements ActorCreator {
     }
 
     public synchronized void acquireWakeLock() {
-        if (!wakeLock.isHeld()) {
+        if (wakeLock != null && !wakeLock.isHeld()) {
             wakeLock.acquire(TimeUnit.MINUTES.toMillis(5));
             Log.d(LOG_TAG, "Wakelock acquired");
         }
     }
 
     public synchronized void releaseWakeLock() {
-        if (wakeLock.isHeld()) {
+        if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
             Log.d(LOG_TAG, "Wakelock released");
         }
@@ -77,6 +82,10 @@ public class ActorSystem implements ActorCreator {
 
     public EventBus getEventBus() {
         return eventBus;
+    }
+
+    ActorRef getDeadLetter() {
+        return deadLetter;
     }
 
     public void terminateActor(ActorRef actorRef) {

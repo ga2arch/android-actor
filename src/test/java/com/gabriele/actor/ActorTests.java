@@ -4,6 +4,7 @@ import android.test.mock.MockContext;
 import android.test.suitebuilder.annotation.LargeTest;
 
 import com.gabriele.actor.internals.AbstractActor;
+import com.gabriele.actor.internals.ActorMessage;
 import com.gabriele.actor.internals.ActorRef;
 import com.gabriele.actor.internals.ActorSystem;
 import com.gabriele.actor.eventbus.EventBus;
@@ -90,6 +91,13 @@ public class ActorTests {
         ref1.tell(new BecomeEcho(), null);
 
         probe.expectMessage("ciao", 1000);
+    }
+
+    @Test
+    public void testDeadLetter() {
+        ActorRef ref1 = system.actorOf(Props.create(Actor1.class));
+        ref1.tell(new ActorMessage.PoisonPill(), ActorRef.noSender());
+        ref1.tell("ciao", ActorRef.noSender());
     }
 
     public static class Actor1 extends AbstractActor {

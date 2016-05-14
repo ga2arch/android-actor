@@ -1,26 +1,27 @@
 package com.gabriele.actor.logging;
 
-import com.gabriele.actor.internals.AbstractActor;
+import android.util.Log;
+
 import com.gabriele.actor.internals.ActorRef;
 
 public class Logger {
 
-    private String path;
+    private final ActorRef actorRef;
 
     public static Logger create(ActorRef ref) {
-        return new Logger(ref.getPath());
+        return new Logger(ref);
     }
 
-    public static Logger create(AbstractActor ref) {
-        return new Logger(ref.getSelf().getPath());
-    }
-
-    private Logger(String path) {
-        this.path = path;
+    private Logger(ActorRef actorRef) {
+        this.actorRef = actorRef;
     }
 
     public void info(String str) {
-        System.out.println(String.format("%s: %s", path, str));
+        Log.i(actorRef.getName(), String.format("%s: %s", actorRef.getPath(), str));
+    }
+
+    public void debug(String str) {
+        Log.d(actorRef.getName(), String.format("%s: %s", actorRef.getPath(), str));
     }
 
 }

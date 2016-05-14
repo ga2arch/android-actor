@@ -30,6 +30,7 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
             ref = system.actorSelection("//" + getClass().getSimpleName());
 
         }
+        //FIXME recreate actor with the same path
 
         if (ref == null) {
             ref = system.actorOf(Props.create(this)
