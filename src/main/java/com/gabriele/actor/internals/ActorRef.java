@@ -1,5 +1,9 @@
 package com.gabriele.actor.internals;
 
+import com.gabriele.actor.utils.Completable;
+
+import java.util.concurrent.TimeUnit;
+
 public class ActorRef {
 
     private ActorSystem system;
@@ -30,6 +34,13 @@ public class ActorRef {
             system.publish(system.getDeadLetter(), new ActorMessage.DeadLetter(message, this), sender);
         else
             system.publish(this, message, sender);
+    }
+
+    public Object ask(final Object message, long time, TimeUnit unit) {
+        Completable completable = new Completable();
+        ActorRef tempRef = system.actorOf(this, Props.create(AskActor.class, completable));
+        tell(message, tempRef);
+        return completable.get(time, unit);
     }
 
     public static ActorRef noSender() {

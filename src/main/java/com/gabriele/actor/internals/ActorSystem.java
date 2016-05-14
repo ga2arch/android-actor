@@ -84,14 +84,14 @@ public class ActorSystem implements ActorCreator {
         return eventBus;
     }
 
-    ActorRef getDeadLetter() {
+    public ActorRef getDeadLetter() {
         return deadLetter;
     }
 
     public void terminateActor(ActorRef actorRef) {
         AbstractActor actor = actors.get(actorRef.getPath());
-        if (actor == null)
-            throw new ActorIsTerminatedException();
+        if (actor instanceof DeadLetterActor)
+            return;
 
         getEventBus().unsubscribe(actorRef);
         actorRef.setTerminated();
@@ -173,7 +173,7 @@ public class ActorSystem implements ActorCreator {
     public AbstractActor getActor(ActorRef ref) {
         AbstractActor actor = actors.get(ref.getPath());
         if (actor == null)
-            throw new ActorIsTerminatedException();
+            return actors.get(deadLetter.getPath());
 
         return actor;
     }

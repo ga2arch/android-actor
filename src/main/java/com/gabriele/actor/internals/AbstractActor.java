@@ -45,8 +45,12 @@ public abstract class AbstractActor implements WithReceive {
             throw new ActorIsTerminatedException();
 
         if (!isStarted()) {
-            preStart();
-            setStarted();
+            try {
+                preStart();
+                setStarted();
+            } catch (Exception e) {
+                throw e;
+            }
         }
 
         Iterator<ActorMessage> it = getMailbox().iterator();
@@ -66,9 +70,6 @@ public abstract class AbstractActor implements WithReceive {
                 } else {
                     stack.getFirst().onReceive(message.getObject());
                 }
-
-            } catch (SecurityException e) {
-                getSelf().tell(e, ActorRef.noSender());
 
             } catch (Exception e) {
                 throw e;
