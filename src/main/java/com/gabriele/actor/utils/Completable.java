@@ -16,7 +16,7 @@ public class Completable {
             wait(millis);
             return content;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+
         }
 
         return null;
