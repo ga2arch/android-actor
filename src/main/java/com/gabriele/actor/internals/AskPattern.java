@@ -4,9 +4,9 @@ import com.gabriele.actor.utils.Completable;
 
 public class AskPattern {
 
-    public static AskContext create(ActorContext context) {
+    public static AskContext create(ActorSystem system, ActorRef parent) {
         Completable completable = new Completable();
-        ActorRef tempRef = context.actorOf(Props.create(AskActor.class, completable));
+        ActorRef tempRef = system.actorOf(parent, Props.create(AskActor.class, completable));
 
         return new AskContext(tempRef, completable);
     }
