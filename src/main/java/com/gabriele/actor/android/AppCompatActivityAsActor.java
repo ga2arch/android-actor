@@ -69,11 +69,11 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
         getSelf().tell(new ActivityActor.ActivityDestroyedMessage(), getSelf());
     }
 
-    protected ActorRef getSelf() {
+    public ActorRef getSelf() {
         return ref;
     }
 
-    protected ActorContext getActorContext() {
+    public ActorContext getActorContext() {
         AbstractActor actor = system.getActor(getSelf());
         if (actor != null)
             return actor.getActorContext();
@@ -85,7 +85,7 @@ public abstract class AppCompatActivityAsActor extends AppCompatActivity impleme
         return getActorContext().getSender();
     }
 
-    protected EventBus getEventBus() {
+    public EventBus getEventBus() {
         return system.getEventBus();
     }
 }
